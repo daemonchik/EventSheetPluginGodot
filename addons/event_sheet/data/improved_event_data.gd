@@ -16,7 +16,7 @@ class EventBlock:
 			return null
 		
 		var scene_tree = Engine.get_main_loop() as SceneTree
-		if scene_tree == null:
+		if scene_tree == null or scene_tree.current_scene == null:
 			return null
 		
 		# Поиск по пути
@@ -95,7 +95,10 @@ class EventCondition:
 			
 			"key_pressed":
 				var key = parameters.get("key", "")
-				result = Input.is_action_pressed(key)
+				if key.is_empty():
+					result = false
+				else:
+					result = Input.is_action_pressed(key)
 			
 			"button_pressed":
 				if target_node is BaseButton:
@@ -112,9 +115,13 @@ class EventCondition:
 			"is_on_floor":
 				if target_node is CharacterBody2D:
 					result = target_node.is_on_floor()
+				elif target_node is CharacterBody3D:
+					result = target_node.is_on_floor()
 			
 			"is_on_wall":
 				if target_node is CharacterBody2D:
+					result = target_node.is_on_wall()
+				elif target_node is CharacterBody3D:
 					result = target_node.is_on_wall()
 			
 			"mouse_entered":
@@ -125,15 +132,20 @@ class EventCondition:
 				var var_name = parameters.get("variable", "")
 				var value = parameters.get("value", 0)
 				var operation = parameters.get("operation", "==")
-				var current_value = target_node.get(var_name)
 				
-				match operation:
-					"==": result = current_value == value
-					"!=": result = current_value != value
-					">": result = current_value > value
-					"<": result = current_value < value
-					">=": result = current_value >= value
-					"<=": result = current_value <= value
+				if var_name.is_empty():
+					result = false
+				elif target_node.has_method("get") and var_name in target_node:
+					var current_value = target_node.get(var_name)
+					match operation:
+						"==": result = current_value == value
+						"!=": result = current_value != value
+						">": result = current_value > value
+						"<": result = current_value < value
+						">=": result = current_value >= value
+						"<=": result = current_value <= value
+				else:
+					result = false
 			
 			"timer_timeout":
 				if target_node is Timer:
@@ -189,6 +201,7 @@ class EventAction:
 	
 	func execute(target_node: Node) -> void:
 		if target_node == null:
+			push_warning("EventAction: target_node is null for action: %s" % action_type)
 			return
 		
 		# Задержка если нужна
@@ -198,18 +211,22 @@ class EventAction:
 		match action_type:
 			"set_position":
 				if target_node is Node2D:
-					var pos = parameters.get("position", Vector2.ZERO)
+					var pos_data = parameters.get("position", {"x": 0, "y": 0})
+					var pos = Vector2(pos_data.get("x", 0), pos_data.get("y", 0))
 					target_node.position = pos
 				elif target_node is Node3D:
-					var pos = parameters.get("position", Vector3.ZERO)
+					var pos_data = parameters.get("position", {"x": 0, "y": 0, "z": 0})
+					var pos = Vector3(pos_data.get("x", 0), pos_data.get("y", 0), pos_data.get("z", 0))
 					target_node.position = pos
 			
 			"move_by":
 				if target_node is Node2D:
-					var offset = parameters.get("offset", Vector2.ZERO)
+					var offset_data = parameters.get("offset", {"x": 0, "y": 0})
+					var offset = Vector2(offset_data.get("x", 0), offset_data.get("y", 0))
 					target_node.position += offset
 				elif target_node is Node3D:
-					var offset = parameters.get("offset", Vector3.ZERO)
+					var offset_data = parameters.get("offset", {"x": 0, "y": 0, "z": 0})
+					var offset = Vector3(offset_data.get("x", 0), offset_data.get("y", 0), offset_data.get("z", 0))
 					target_node.position += offset
 			
 			"set_rotation":
@@ -217,33 +234,40 @@ class EventAction:
 					var rot = parameters.get("rotation", 0.0)
 					target_node.rotation = rot
 				elif target_node is Node3D:
-					var rot = parameters.get("rotation", Vector3.ZERO)
+					var rot_data = parameters.get("rotation", {"x": 0, "y": 0, "z": 0})
+					var rot = Vector3(rot_data.get("x", 0), rot_data.get("y", 0), rot_data.get("z", 0))
 					target_node.rotation = rot
 			
 			"set_scale":
 				if target_node is Node2D:
-					var scale_val = parameters.get("scale", Vector2.ONE)
+					var scale_data = parameters.get("scale", {"x": 1, "y": 1})
+					var scale_val = Vector2(scale_data.get("x", 1), scale_data.get("y", 1))
 					target_node.scale = scale_val
 				elif target_node is Node3D:
-					var scale_val = parameters.get("scale", Vector3.ONE)
+					var scale_data = parameters.get("scale", {"x": 1, "y": 1, "z": 1})
+					var scale_val = Vector3(scale_data.get("x", 1), scale_data.get("y", 1), scale_data.get("z", 1))
 					target_node.scale = scale_val
 			
 			"play_animation":
 				if target_node is AnimationPlayer:
 					var anim_name = parameters.get("animation", "")
-					target_node.play(anim_name)
+					if anim_name.is_empty() or not target_node.has_animation(anim_name):
+						push_warning("Animation '%s' not found in %s" % [anim_name, target_node.name])
+					else:
+						target_node.play(anim_name)
 			
 			"stop_animation":
 				if target_node is AnimationPlayer:
 					target_node.stop()
 			
 			"set_text":
+				var text_value = parameters.get("text", "")
 				if target_node is Label:
-					target_node.text = parameters.get("text", "")
+					target_node.text = text_value
 				elif target_node is Button:
-					target_node.text = parameters.get("text", "")
+					target_node.text = text_value
 				elif target_node is LineEdit:
-					target_node.text = parameters.get("text", "")
+					target_node.text = text_value
 			
 			"set_visible":
 				var visible = parameters.get("visible", true)
@@ -277,35 +301,51 @@ class EventAction:
 			"set_property":
 				var prop_name = parameters.get("property", "")
 				var value = parameters.get("value", null)
-				if target_node.has_method("set_" + prop_name) or prop_name in target_node:
+				if prop_name.is_empty():
+					push_warning("Property name is empty for set_property action")
+				elif target_node.has_method("set") and prop_name in target_node:
 					target_node.set(prop_name, value)
+				else:
+					push_warning("Property '%s' not found in %s" % [prop_name, target_node.name])
 			
 			"call_method":
 				var method_name = parameters.get("method", "")
 				var args = parameters.get("args", [])
-				if target_node.has_method(method_name):
+				if method_name.is_empty():
+					push_warning("Method name is empty for call_method action")
+				elif target_node.has_method(method_name):
 					target_node.callv(method_name, args)
+				else:
+					push_warning("Method '%s' not found in %s" % [method_name, target_node.name])
 			
 			"emit_signal":
 				var signal_name = parameters.get("signal", "")
 				var args = parameters.get("args", [])
-				if target_node.has_signal(signal_name):
+				if signal_name.is_empty():
+					push_warning("Signal name is empty for emit_signal action")
+				elif target_node.has_signal(signal_name):
 					target_node.emit_signal(signal_name, args)
+				else:
+					push_warning("Signal '%s' not found in %s" % [signal_name, target_node.name])
 			
 			"apply_impulse":
 				if target_node is RigidBody2D:
-					var impulse = parameters.get("impulse", Vector2.ZERO)
+					var impulse_data = parameters.get("impulse", {"x": 0, "y": 0})
+					var impulse = Vector2(impulse_data.get("x", 0), impulse_data.get("y", 0))
 					target_node.apply_central_impulse(impulse)
 				elif target_node is RigidBody3D:
-					var impulse = parameters.get("impulse", Vector3.ZERO)
+					var impulse_data = parameters.get("impulse", {"x": 0, "y": 0, "z": 0})
+					var impulse = Vector3(impulse_data.get("x", 0), impulse_data.get("y", 0), impulse_data.get("z", 0))
 					target_node.apply_central_impulse(impulse)
 			
 			"set_velocity":
 				if target_node is CharacterBody2D:
-					var velocity = parameters.get("velocity", Vector2.ZERO)
+					var vel_data = parameters.get("velocity", {"x": 0, "y": 0})
+					var velocity = Vector2(vel_data.get("x", 0), vel_data.get("y", 0))
 					target_node.velocity = velocity
 				elif target_node is CharacterBody3D:
-					var velocity = parameters.get("velocity", Vector3.ZERO)
+					var vel_data = parameters.get("velocity", {"x": 0, "y": 0, "z": 0})
+					var velocity = Vector3(vel_data.get("x", 0), vel_data.get("y", 0), vel_data.get("z", 0))
 					target_node.velocity = velocity
 			
 			"destroy":
@@ -313,19 +353,29 @@ class EventAction:
 			
 			"instance_scene":
 				var scene_path = parameters.get("scene", "")
-				var parent = parameters.get("parent", target_node)
-				var scene_resource = load(scene_path)
-				if scene_resource:
-					var instance = scene_resource.instantiate()
-					parent.add_child(instance)
+				if scene_path.is_empty():
+					push_warning("Scene path is empty for instance_scene action")
+				elif not FileAccess.file_exists(scene_path):
+					push_warning("Scene file not found: %s" % scene_path)
+				else:
+					var scene_resource = load(scene_path)
+					if scene_resource:
+						var instance = scene_resource.instantiate()
+						var parent = target_node.get_parent() if target_node.get_parent() else target_node
+						parent.add_child(instance)
 			
 			"change_scene":
 				var scene_path = parameters.get("scene", "")
-				target_node.get_tree().change_scene_to_file(scene_path)
+				if scene_path.is_empty():
+					push_warning("Scene path is empty for change_scene action")
+				elif not FileAccess.file_exists(scene_path):
+					push_warning("Scene file not found: %s" % scene_path)
+				else:
+					target_node.get_tree().change_scene_to_file(scene_path)
 			
 			"print_message":
 				var message = parameters.get("message", "")
-				print(message)
+				print("EventAction: %s" % message)
 			
 			"start_timer":
 				if target_node is Timer:
@@ -336,6 +386,9 @@ class EventAction:
 			"stop_timer":
 				if target_node is Timer:
 					target_node.stop()
+			
+			_:
+				push_warning("Unknown action type: %s" % action_type)
 	
 	func to_dict() -> Dictionary:
 		return {
@@ -354,25 +407,35 @@ class EventAction:
 	func get_display_text() -> String:
 		var text = ""
 		match action_type:
-			"set_position": text = "Установить позицию %s" % parameters.get("position", "")
-			"move_by": text = "Сместить на %s" % parameters.get("offset", "")
+			"set_position": 
+				var pos = parameters.get("position", {})
+				text = "Установить позицию (%s, %s)" % [pos.get("x", 0), pos.get("y", 0)]
+			"move_by": 
+				var offset = parameters.get("offset", {})
+				text = "Сместить на (%s, %s)" % [offset.get("x", 0), offset.get("y", 0)]
 			"set_rotation": text = "Повернуть на %s" % parameters.get("rotation", "")
-			"set_scale": text = "Масштабировать %s" % parameters.get("scale", "")
+			"set_scale": 
+				var scale = parameters.get("scale", {})
+				text = "Масштабировать (%s, %s)" % [scale.get("x", 1), scale.get("y", 1)]
 			"play_animation": text = "Проиграть анимацию '%s'" % parameters.get("animation", "")
 			"stop_animation": text = "Остановить анимацию"
 			"set_text": text = "Установить текст '%s'" % parameters.get("text", "")
 			"set_visible": text = "Видимость: %s" % parameters.get("visible", true)
 			"play_sound": text = "Проиграть звук"
 			"stop_sound": text = "Остановить звук"
-			"set_volume": text = "Громкость: %s" % parameters.get("volume", 0)
+			"set_volume": text = "Громкость: %s дБ" % parameters.get("volume", 0)
 			"set_property": text = "Свойство '%s' = %s" % [
 				parameters.get("property", ""),
 				parameters.get("value", "")
 			]
 			"call_method": text = "Вызвать метод '%s'" % parameters.get("method", "")
 			"emit_signal": text = "Послать сигнал '%s'" % parameters.get("signal", "")
-			"apply_impulse": text = "Импульс %s" % parameters.get("impulse", "")
-			"set_velocity": text = "Скорость %s" % parameters.get("velocity", "")
+			"apply_impulse": 
+				var impulse = parameters.get("impulse", {})
+				text = "Импульс (%s, %s)" % [impulse.get("x", 0), impulse.get("y", 0)]
+			"set_velocity": 
+				var velocity = parameters.get("velocity", {})
+				text = "Скорость (%s, %s)" % [velocity.get("x", 0), velocity.get("y", 0)]
 			"destroy": text = "Уничтожить"
 			"instance_scene": text = "Создать сцену '%s'" % parameters.get("scene", "")
 			"change_scene": text = "Перейти к сцене '%s'" % parameters.get("scene", "")
@@ -432,34 +495,42 @@ class FileManager:
 	static func save_to_file(sheet: EventSheet, file_path: String) -> bool:
 		var file = FileAccess.open(file_path, FileAccess.WRITE)
 		if file == null:
-			push_error("Не удалось открыть файл для записи: %s" % file_path)
+			push_error("Не удалось открыть файл для записи: %s (error: %s)" % [file_path, FileAccess.get_open_error()])
 			return false
 		
 		var json_data = JSON.stringify(sheet.to_dict(), "\t")
 		file.store_string(json_data)
+		file.close()
 		print("EventSheet сохранен: %s" % file_path)
 		return true
 	
 	static func load_from_file(file_path: String) -> EventSheet:
-		if not ResourceLoader.exists(file_path):
+		# Исправляем проверку файла
+		if not FileAccess.file_exists(file_path):
 			push_error("Файл не найден: %s" % file_path)
 			return null
 		
 		var file = FileAccess.open(file_path, FileAccess.READ)
 		if file == null:
-			push_error("Не удалось открыть файл для чтения: %s" % file_path)
+			push_error("Не удалось открыть файл для чтения: %s (error: %s)" % [file_path, FileAccess.get_open_error()])
 			return null
 		
 		var json_string = file.get_as_text()
+		file.close()
+		
+		if json_string.is_empty():
+			push_error("JSON файл пустой: %s" % file_path)
+			return null
+		
 		var json = JSON.new()
 		var error = json.parse(json_string)
 		
 		if error != OK:
-			push_error("Ошибка парсинга JSON: %s" % file_path)
+			push_error("Ошибка парсинга JSON в строке %d: %s" % [json.get_error_line(), json.get_error_message()])
 			return null
 		
 		var data = json.data
-		if data == null or data is not Dictionary:
+		if data == null or not data is Dictionary:
 			push_error("Некорректный формат JSON: %s" % file_path)
 			return null
 		

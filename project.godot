@@ -22,7 +22,7 @@ project/assembly_name="EventSheetPluginTest"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/event_sheet/improved_plugin.cfg", "res://addons/plugin_refresher/plugin.cfg")
+enabled=PackedStringArray("res://addons/event_sheet/plugin.cfg", "res://addons/plugin_refresher/plugin.cfg")
 
 [input]
 

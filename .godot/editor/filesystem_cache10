@@ -1,5 +1,5 @@
 63f7b34db8d8cdea90c76aacccf841ec
-::res://::1761941108
+::res://::1761942318
 events.tres::Resource/EventSheetContainer::8294604435533062358::1761919290::0::1::::<><><>0<>0<><>::uid://bxaxkftoqspuq::::res://addons/event_sheet/resources/event_resource.gd<>uid://4an5c38ah6m2::::res://addons/event_sheet/resources/event_sheet_container.gd
 eventsheet.tres::Shortcut::292146586859050757::1761931856::0::1::::<><><>0<>0<><>::
 health.png::CompressedTexture2D::4640768229451466650::1761940266::1761940267::1::::<><><>0<>0<>f493dde3550f6f542654d407538228e7<>res://.godot/imported/health.png-7ae5ab7751d635ede48f3a63e7059234.ctex::
@@ -10,10 +10,10 @@ test.tscn::PackedScene::5751245917426855652::1761940800::0::1::::<><><>0<>0<><>:
 test_event.tres::Resource/EventResource::8792242334407949823::1761917544::0::1::::<><><>0<>0<><>::uid://crc2dlrxo7sd4::::res://addons/event_sheet/resources/action_resource.gd<>uid://cksc8nkeyhbtf::::res://addons/event_sheet/resources/condition_resource.gd<>uid://bxaxkftoqspuq::::res://addons/event_sheet/resources/event_resource.gd
 test_scene.tscn::PackedScene::3787565033976218297::1761940460::0::1::::<><><>0<>0<><>::res://addons/event_sheet/runtime/improved_executor.gd
 ::res://addons/::1761932957
-::res://addons/event_sheet/::1761940800
+::res://addons/event_sheet/::1761942294
 example_improved_events.json::JSON::-1::1761940800::0::1::::<><><>0<>0<><>::
-improved_plugin.cfg::TextFile::-1::1761939593::0::1::::<><><>0<>0<><>::
-improved_plugin.gd::GDScript::1743173453751383864::1761940450::0::1::::<>EditorPlugin<><>0<>1<><>::
+plugin.cfg::TextFile::-1::1761939593::0::1::::<><><>0<>0<><>::
+plugin.gd::GDScript::1743173453751383864::1761940450::0::1::::<>EditorPlugin<><>0<>1<><>::
 ::res://addons/event_sheet/data/::1761939200
 improved_event_data.gd::GDScript::3744426931313440848::1761940429::0::1::::ImprovedEventData<>RefCounted<><>0<>1<><>::
 ::res://addons/event_sheet/runtime/::1761939200

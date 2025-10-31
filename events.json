@@ -1,0 +1,132 @@
+{
+	"description": "Главные события игры",
+	"events": [
+		{
+			"actions": [
+				{
+					"action_name": "Set variable",
+					"parameters": {
+
+					},
+					"target_object": "12"
+				}
+			],
+			"comment": "",
+			"conditions": [
+				{
+					"condition_name": "Start of layout",
+					"inverted": false,
+					"parameters": {
+
+					},
+					"target_object": "1234567"
+				},
+				{
+					"condition_name": "Start of layout",
+					"inverted": false,
+					"parameters": {
+
+					},
+					"target_object": ""
+				},
+				{
+					"condition_name": "Start of layout",
+					"inverted": false,
+					"parameters": {
+
+					},
+					"target_object": ""
+				}
+			],
+			"enabled": true,
+			"event_name": "New Event",
+			"sub_events": [
+				{
+					"actions": [],
+					"comment": "",
+					"conditions": [],
+					"enabled": true,
+					"event_name": "Sub Event",
+					"sub_events": []
+				},
+				{
+					"actions": [],
+					"comment": "",
+					"conditions": [],
+					"enabled": true,
+					"event_name": "Sub Event",
+					"sub_events": []
+				}
+			]
+		},
+		{
+			"actions": [
+				{
+					"action_name": "Set variable",
+					"parameters": {
+
+					},
+					"target_object": ""
+				},
+				{
+					"action_name": "Set position",
+					"parameters": {
+
+					},
+					"target_object": ""
+				}
+			],
+			"comment": "",
+			"conditions": [
+				{
+					"condition_name": "Is on floor",
+					"inverted": false,
+					"parameters": {
+
+					},
+					"target_object": ""
+				},
+				{
+					"condition_name": "On collision",
+					"inverted": false,
+					"parameters": {
+
+					},
+					"target_object": ""
+				},
+				{
+					"condition_name": "Start of layout",
+					"inverted": false,
+					"parameters": {
+
+					},
+					"target_object": ""
+				},
+				{
+					"condition_name": "Is on floor",
+					"inverted": false,
+					"parameters": {
+
+					},
+					"target_object": ""
+				},
+				{
+					"condition_name": "Is on floor",
+					"inverted": false,
+					"parameters": {
+
+					},
+					"target_object": ""
+				}
+			],
+			"enabled": true,
+			"event_name": "New Event1235",
+			"sub_events": []
+		}
+	],
+	"global_variables": {
+		"game_started": 0.0,
+		"score": 0.0
+	},
+	"sheet_name": "Main Events"
+}

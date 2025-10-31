@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="EventResource" load_steps=4 format=3 uid="uid://dxja7gmrjfx3t"]
+
+[ext_resource type="Script" uid="uid://crc2dlrxo7sd4" path="res://addons/event_sheet/resources/action_resource.gd" id="1_ku4t6"]
+[ext_resource type="Script" uid="uid://cksc8nkeyhbtf" path="res://addons/event_sheet/resources/condition_resource.gd" id="2_s0x37"]
+[ext_resource type="Script" uid="uid://bxaxkftoqspuq" path="res://addons/event_sheet/resources/event_resource.gd" id="3_nbbfi"]
+
+[resource]
+script = ExtResource("3_nbbfi")
+metadata/_custom_type_script = "uid://bxaxkftoqspuq"

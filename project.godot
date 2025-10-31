@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="test"
-run/main_scene="uid://bsuoxglh1g2ow"
+config/tags=PackedStringArray("1")
 config/features=PackedStringArray("4.5", "Forward Plus")
 config/icon="res://icon.svg"
 
@@ -21,4 +21,4 @@ project/assembly_name="test"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/event_sheet/plugin.cfg")
+enabled=PackedStringArray("res://addons/event_sheet/improved_plugin.cfg", "res://addons/explore-editor-theme/plugin.cfg", "res://addons/plugin_refresher/plugin.cfg")

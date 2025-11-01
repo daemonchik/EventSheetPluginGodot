@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="WAction" load_steps=3 format=3 uid="uid://stop_particle_system"]
+
+[ext_resource type="Script" uid="uid://d3jxwj22ssgwi" path="res://addons/event_sheet/scripts/action.gd" id="1_stop_particles"]
+[ext_resource type="Texture2D" uid="uid://b50jpu11ld31l" path="res://icon.svg" id="2_stop_particles"]
+
+[resource]
+script = ExtResource("1_stop_particles")
+id = "stop_particle_system"
+title = "Stop particle system"
+icon = ExtResource("2_stop_particles")
+description = "Stop emitting particles from a particle system."
+parameters = {
+"ParticleSystem": ""
+}
+group = "Particles"

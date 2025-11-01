@@ -1,8 +1,0 @@
-[gd_resource type="Resource" script_class="EventSheetContainer" load_steps=3 format=3 uid="uid://gph2h0wu726b"]
-
-[ext_resource type="Script" uid="uid://bxaxkftoqspuq" path="res://addons/event_sheet/resources/event_resource.gd" id="1_xgbfr"]
-[ext_resource type="Script" uid="uid://4an5c38ah6m2" path="res://addons/event_sheet/resources/event_sheet_container.gd" id="2_7govv"]
-
-[resource]
-script = ExtResource("2_7govv")
-metadata/_custom_type_script = "uid://4an5c38ah6m2"

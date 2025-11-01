@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="WEvent" load_steps=3 format=3 uid="uid://b8vnx4k2ywm3p"]
+
+[ext_resource type="Script" path="res://addons/event_sheet/scripts/event.gd" id="1_key01"]
+[ext_resource type="Texture2D" uid="uid://b50jpu11ld31l" path="res://icon.svg" id="2_key01"]
+
+[resource]
+script = ExtResource("1_key01")
+id = "on_key_pressed"
+title = "On key pressed"
+icon = ExtResource("2_key01")
+description = "Triggered when a key is pressed."
+parameters = {
+"Key": "Space"
+}
+group = "Keyboard"

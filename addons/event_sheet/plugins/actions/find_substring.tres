@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="WAction" load_steps=3 format=3 uid="uid://find_substring"]
+
+[ext_resource type="Script" uid="uid://d3jxwj22ssgwi" path="res://addons/event_sheet/scripts/action.gd" id="1_find"]
+[ext_resource type="Texture2D" uid="uid://b50jpu11ld31l" path="res://icon.svg" id="2_find"]
+
+[resource]
+script = ExtResource("1_find")
+id = "find_substring"
+title = "Find substring"
+icon = ExtResource("2_find")
+description = "Find the position of a substring within a string and store the result."
+parameters = {
+"Variable": "",
+"String": "",
+"Substring": ""
+}
+group = "String"

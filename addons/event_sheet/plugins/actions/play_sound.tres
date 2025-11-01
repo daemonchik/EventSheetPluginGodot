@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="WAction" load_steps=3 format=3 uid="uid://chl7by0ld2alr"]
+
+[ext_resource type="Texture2D" uid="uid://b50jpu11ld31l" path="res://icon.svg" id="1_playsound"]
+[ext_resource type="Script" path="res://addons/event_sheet/scripts/action.gd" id="2_playsound"]
+
+[resource]
+script = ExtResource("2_playsound")
+id = "play_sound"
+title = "Play sound"
+icon = ExtResource("1_playsound")
+description = "Play an audio file."
+parameters = {
+"Sound": "",
+"Volume": 1.0,
+"Loop": false
+}
+group = "Audio"

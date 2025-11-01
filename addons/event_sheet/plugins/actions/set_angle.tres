@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="WAction" load_steps=3 format=3 uid="uid://fj48wxjb0akh"]
+
+[ext_resource type="Texture2D" uid="uid://b50jpu11ld31l" path="res://icon.svg" id="1_setangle"]
+[ext_resource type="Script" path="res://addons/event_sheet/scripts/action.gd" id="2_setangle"]
+
+[resource]
+script = ExtResource("2_setangle")
+id = "set_angle"
+title = "Set angle"
+icon = ExtResource("1_setangle")
+description = "Set the rotation angle of an object."
+parameters = {
+"Name": "",
+"Angle": 0.0
+}
+group = "Appearance"

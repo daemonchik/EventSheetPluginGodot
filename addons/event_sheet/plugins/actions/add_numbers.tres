@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="WAction" load_steps=3 format=3 uid="uid://add_numbers"]
+
+[ext_resource type="Script" uid="uid://d3jxwj22ssgwi" path="res://addons/event_sheet/scripts/action.gd" id="1_add"]
+[ext_resource type="Texture2D" uid="uid://b50jpu11ld31l" path="res://icon.svg" id="2_add"]
+
+[resource]
+script = ExtResource("1_add")
+id = "add_numbers"
+title = "Add numbers"
+icon = ExtResource("2_add")
+description = "Add two numbers and store the result in a variable."
+parameters = {
+"Variable": "",
+"Value1": "",
+"Value2": ""
+}
+group = "Math"

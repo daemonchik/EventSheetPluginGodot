@@ -1,0 +1,34 @@
+[gd_resource type="Resource" script_class="WGroup" load_steps=24 format=3 uid="uid://bw6516amr7gxx"]
+
+[ext_resource type="Script" path="res://addons/event_sheet/scripts/action.gd" id="1_exj57"]
+[ext_resource type="Resource" uid="uid://cuv8h25ffmm1v" path="res://addons/event_sheet/plugins/actions/create_object.tres" id="1_jfqia"]
+[ext_resource type="Resource" uid="uid://6kvc5qvqsuf1" path="res://addons/event_sheet/plugins/actions/destroy_object.tres" id="2_destroy"]
+[ext_resource type="Texture2D" uid="uid://b50jpu11ld31l" path="res://icon.svg" id="2_stjpp"]
+[ext_resource type="Script" path="res://addons/event_sheet/scripts/event.gd" id="3_jjl4f"]
+[ext_resource type="Resource" uid="uid://b7lwd6rwq2ug2" path="res://addons/event_sheet/plugins/actions/set_position.tres" id="3_setpos"]
+[ext_resource type="Script" path="res://addons/event_sheet/scripts/group.gd" id="3_v5mtm"]
+[ext_resource type="Resource" uid="uid://c7uxe7sxr3vh3" path="res://addons/event_sheet/plugins/actions/set_visible.tres" id="4_setvis"]
+[ext_resource type="Resource" uid="uid://bwqnnx7pyn5yx" path="res://addons/event_sheet/plugins/events/on_start_of_layout.tres" id="4_t1tab"]
+[ext_resource type="Resource" uid="uid://b8vnx4k2ywm3p" path="res://addons/event_sheet/plugins/events/on_key_pressed.tres" id="5_keypress"]
+[ext_resource type="Resource" uid="uid://b7vxr7s0s4386" path="res://addons/event_sheet/plugins/actions/move_at_angle.tres" id="5_moveangle"]
+[ext_resource type="Resource" uid="uid://dawoy5l30xn4q" path="res://addons/event_sheet/plugins/events/on_key_released.tres" id="6_keyrel"]
+[ext_resource type="Resource" uid="uid://c8wysxtqt55a7" path="res://addons/event_sheet/plugins/actions/set_velocity.tres" id="6_setvel"]
+[ext_resource type="Resource" uid="uid://d0xp06m4ayn5r" path="res://addons/event_sheet/plugins/events/on_mouse_clicked.tres" id="7_mouseclick"]
+[ext_resource type="Resource" uid="uid://fj48wxjb0akh" path="res://addons/event_sheet/plugins/actions/set_angle.tres" id="7_setangle"]
+[ext_resource type="Resource" uid="uid://7lwo5ryr33i5" path="res://addons/event_sheet/plugins/events/on_collision.tres" id="8_collision"]
+[ext_resource type="Resource" uid="uid://bgk6axykc1akq" path="res://addons/event_sheet/plugins/actions/set_scale.tres" id="8_setscale"]
+[ext_resource type="Resource" uid="uid://chl7by0ld2alr" path="res://addons/event_sheet/plugins/actions/play_sound.tres" id="9_playsound"]
+[ext_resource type="Resource" uid="uid://dim8c01me3ams" path="res://addons/event_sheet/plugins/actions/stop_sound.tres" id="10_stopsound"]
+[ext_resource type="Resource" uid="uid://ffcq06gttnro" path="res://addons/event_sheet/plugins/actions/set_variable.tres" id="11_setvar"]
+[ext_resource type="Resource" uid="uid://bggdq17hutnsp" path="res://addons/event_sheet/plugins/actions/start_timer.tres" id="12_starttimer"]
+[ext_resource type="Script" path="res://addons/event_sheet/scripts/condition.gd" id="14_exa27"]
+[ext_resource type="Resource" uid="uid://chheq28ivtnsy" path="res://addons/event_sheet/plugins/events/on_timer.tres" id="14_ontimer"]
+
+[resource]
+script = ExtResource("3_v5mtm")
+id = "system"
+title = "System"
+icon = ExtResource("2_stjpp")
+actions = Array[ExtResource("1_exj57")]([ExtResource("1_jfqia"), ExtResource("2_destroy"), ExtResource("3_setpos"), ExtResource("4_setvis"), ExtResource("5_moveangle"), ExtResource("6_setvel"), ExtResource("7_setangle"), ExtResource("8_setscale"), ExtResource("9_playsound"), ExtResource("10_stopsound"), ExtResource("11_setvar"), ExtResource("12_starttimer")])
+events = Array[ExtResource("3_jjl4f")]([ExtResource("4_t1tab"), ExtResource("5_keypress"), ExtResource("6_keyrel"), ExtResource("7_mouseclick"), ExtResource("8_collision"), ExtResource("14_ontimer")])
+conditions = Array[ExtResource("14_exa27")]([])

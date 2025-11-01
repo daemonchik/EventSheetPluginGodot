@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="WAction" load_steps=3 format=3 uid="uid://bggdq17hutnsp"]
+
+[ext_resource type="Script" uid="uid://d3jxwj22ssgwi" path="res://addons/event_sheet/scripts/action.gd" id="1_timer"]
+[ext_resource type="Texture2D" uid="uid://b50jpu11ld31l" path="res://icon.svg" id="2_timer"]
+
+[resource]
+script = ExtResource("1_timer")
+id = "start_timer"
+title = "Start timer"
+icon = ExtResource("2_timer")
+description = "Start a timer that will trigger an event after specified time."
+parameters = {
+"Loop": false,
+"Time": 1.0,
+"TimerName": ""
+}
+group = "Time"

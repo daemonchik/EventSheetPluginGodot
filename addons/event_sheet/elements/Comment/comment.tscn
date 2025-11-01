@@ -1,0 +1,72 @@
+[gd_scene load_steps=6 format=3 uid="uid://comment_scene"]
+
+[ext_resource type="Script" path="res://addons/event_sheet/elements/Comment/comment.gd" id="1_comment"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_comment_normal"]
+bg_color = Color(0.25, 0.28, 0.35, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_comment_hover"]
+bg_color = Color(0.28, 0.32, 0.4, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_comment_pressed"]
+bg_color = Color(0.2, 0.22, 0.28, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_comment_focus"]
+bg_color = Color(0.3, 0.35, 0.45, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[node name="Comment" type="Button"]
+custom_minimum_size = Vector2(200, 40)
+offset_right = 200.0
+offset_bottom = 40.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_styles/focus = SubResource("StyleBoxFlat_comment_focus")
+theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_comment_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_comment_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_comment_pressed")
+theme_override_styles/normal = SubResource("StyleBoxFlat_comment_normal")
+script = ExtResource("1_comment")
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 14
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_top = -15.0
+offset_bottom = 15.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 5
+theme_override_constants/margin_right = 5
+
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+
+[node name="TextEdit" type="TextEdit" parent="MarginContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+placeholder_text = "Enter comment..."
+wrap_mode = 1
+caret_blink = true
+caret_blink_interval = 0.5
+
+[connection signal="gui_input" from="." to="." method="_on_gui_input"]
+[connection signal="text_changed" from="MarginContainer/HBoxContainer/TextEdit" to="." method="_on_text_edit_text_changed"]

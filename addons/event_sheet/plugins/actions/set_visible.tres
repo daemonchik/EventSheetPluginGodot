@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="WAction" load_steps=3 format=3 uid="uid://g3asy9p7dbq8u"]
+
+[ext_resource type="Texture2D" uid="uid://b50jpu11ld31l" path="res://icon.svg" id="1_setvis"]
+[ext_resource type="Script" path="res://addons/event_sheet/scripts/action.gd" id="2_setvis"]
+
+[resource]
+script = ExtResource("2_setvis")
+id = "set_visible"
+title = "Set visible"
+icon = ExtResource("1_setvis")
+description = "Set the visibility of an object."
+parameters = {
+"Name": "",
+"Visible": true
+}
+group = "General"

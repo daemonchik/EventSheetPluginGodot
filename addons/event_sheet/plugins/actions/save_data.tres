@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="WAction" load_steps=3 format=3 uid="uid://save_data"]
+
+[ext_resource type="Script" uid="uid://d3jxwj22ssgwi" path="res://addons/event_sheet/scripts/action.gd" id="1_save"]
+[ext_resource type="Texture2D" uid="uid://b50jpu11ld31l" path="res://icon.svg" id="2_save"]
+
+[resource]
+script = ExtResource("1_save")
+id = "save_data"
+title = "Save data"
+icon = ExtResource("2_save")
+description = "Save data to a file."
+parameters = {
+"FileName": "",
+"Data": ""
+}
+group = "File"

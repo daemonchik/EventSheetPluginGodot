@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="WAction" load_steps=3 format=3 uid="uid://dim8c01me3ams"]
+
+[ext_resource type="Texture2D" uid="uid://b50jpu11ld31l" path="res://icon.svg" id="1_stopsound"]
+[ext_resource type="Script" path="res://addons/event_sheet/scripts/action.gd" id="2_stopsound"]
+
+[resource]
+script = ExtResource("2_stopsound")
+id = "stop_sound"
+title = "Stop sound"
+icon = ExtResource("1_stopsound")
+description = "Stop playing a sound."
+parameters = {
+"Sound": ""
+}
+group = "Audio"

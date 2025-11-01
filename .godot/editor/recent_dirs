@@ -1,1 +1,5 @@
 res://
+res://addons/event_sheet/plugins/groups
+res://addons/event_sheet/plugins/actions
+res://addons/event_sheet
+res://addons/event_sheet/elements/Action

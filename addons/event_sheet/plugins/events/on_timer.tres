@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="WEvent" load_steps=4 format=3 uid="uid://chheq28ivtnsy"]
+
+[ext_resource type="Script" uid="uid://bwp3doyxica76" path="res://addons/event_sheet/scripts/condition.gd" id="1_28y0h"]
+[ext_resource type="Script" uid="uid://cydie8ftb3i3v" path="res://addons/event_sheet/scripts/event.gd" id="1_timer_event"]
+[ext_resource type="Texture2D" uid="uid://b50jpu11ld31l" path="res://icon.svg" id="2_timer_event"]
+
+[resource]
+script = ExtResource("1_timer_event")
+id = "on_timer"
+title = "On timer"
+icon = ExtResource("2_timer_event")
+description = "Triggered when a timer expires."
+parameters = {
+"TimerName": ""
+}
+group = "Time"

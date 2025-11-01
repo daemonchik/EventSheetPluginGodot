@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="WAction" load_steps=3 format=3 uid="uid://b7lwd6rwq2ug2"]
+
+[ext_resource type="Texture2D" uid="uid://b50jpu11ld31l" path="res://icon.svg" id="1_setpos"]
+[ext_resource type="Script" path="res://addons/event_sheet/scripts/action.gd" id="2_setpos"]
+
+[resource]
+script = ExtResource("2_setpos")
+id = "set_position"
+title = "Set position"
+icon = ExtResource("1_setpos")
+description = "Set the position of an object."
+parameters = {
+"Name": "",
+"X": 0.0,
+"Y": 0.0
+}
+group = "General"
+enabled = true

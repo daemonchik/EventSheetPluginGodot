@@ -1,60 +1,62 @@
-# EventSheet Plugin - Godot 4
+# Плагин EventSheet - Godot 4
 
-![Demo Image](https://github.com/user-attachments/assets/3372e752-4e49-4e87-90f2-61b9b195eaff)
+![Изображение демо](https://github.com/user-attachments/assets/3372e752-4e49-4e87-90f2-61b9b195eaff)
 
-**EventSheet** is a visual event-driven programming system for Godot 4, similar to Construct 3's event system. It provides a user-friendly visual interface for creating game logic without writing code, making it easier for beginners and designers to create interactive experiences.
+**EventSheet** - это визуальная система событийного программирования для Godot 4, аналогичная системе событий Construct 3. Она предоставляет удобный визуальный интерфейс для создания игровой логики без написания кода, что упрощает создание интерактивных проектов для начинающих и дизайнеров.
 
-## Features
+## Возможности
 
-### ✅ Fully Functional Runtime System
-- **Complete event execution** during gameplay
-- **Visual event sheet editor** integrated into Godot's interface
-- **Real-time event processing** with proper game loop integration
+### ✅ Полнофункциональная система выполнения
+- **Полное выполнение событий** во время игры
+- **Визуальный редактор таблиц событий**, интегрированный в интерфейс Godot
+- **Обработка событий в реальном времени** с правильной интеграцией в игровой цикл
 
-### 🎯 Supported Events
-- **Start of Layout** - Triggers when the scene begins
-- **Keyboard Input** - Key press/release detection
-- **Mouse Input** - Click detection with button filtering
-- **Collision Detection** - Automatic collision handling for Area2D nodes
-- **Timer Events** - Time-based triggers with loop support
+### 🎯 Поддерживаемые события
+- **Начало сцены** - Срабатывает при запуске сцены
+- **Ввод с клавиатуры** - Обнаружение нажатия/отпускания клавиш
+- **Ввод с мыши** - Обнаружение кликов с фильтрацией кнопок
+- **Обнаружение столкновений** - Автоматическая обработка столкновений для узлов Area2D
+- **События таймера** - Временные триггеры с поддержкой циклов
 
-### ⚡ Available Actions
-- **Object Management** - Create, destroy, position, and modify objects
-- **Visual Properties** - Set visibility, scale, rotation, velocity
-- **Audio Control** - Play/stop sounds with volume and loop options
-- **Variable System** - Global variables with mathematical operations
-- **Movement** - Angle-based movement and velocity control
+### ⚡ Доступные действия
+- **Управление объектами** - Создание, удаление, позиционирование и изменение объектов
+- **Визуальные свойства** - Настройка видимости, масштаба, поворота, скорости
+- **Управление аудио** - Воспроизведение/остановка звуков с настройкой громкости и циклов
+- **Система переменных** - Глобальные переменные с математическими операциями
+- **Движение** - Движение на основе угла и управление скоростью
 
-### 🔧 Advanced Features
-- **Expression Evaluation** - Support for variables, math operations, and string parsing
-- **Condition System** - Compare values with multiple operators
-- **Object Tagging** - Tag-based collision filtering
-- **Timer Management** - Named timers with loop functionality
-- **Comment System** - Documentation support in event sheets
+### 🔧 Расширенные функции
+- **Вычисление выражений** - Поддержка переменных, математических операций и парсинга строк
+- **Система условий** - Сравнение значений с несколькими операторами
+- **Теги объектов** - Фильтрация столкновений на основе тегов
+- **Управление таймерами** - Именованные таймеры с функцией циклов
+- **Система комментариев** - Поддержка документации в таблицах событий
 
-The plugin facilitates the transition from Construct 3 to Godot 4 and opens new possibilities for 2D and 3D game development. Create complex game mechanics visually without programming knowledge.
+Плагин облегчает переход с Construct 3 на Godot 4 и открывает новые возможности для 2D и 3D разработки игр. Создавайте сложную игровую механику визуально без знаний программирования.
 
-The project is completely free and open source under the very free [MIT license](https://github.com/WladekProd/EventSheet/blob/main/LICENSE).
-## FAQ
+Проект полностью бесплатный и с открытым исходным кодом по очень свободной [лицензии MIT](https://github.com/WladekProd/EventSheet/blob/main/LICENSE).
 
-#### What is an Event Sheet:
+## Часто задаваемые вопросы
 
-Events consist of conditions that check if certain criteria are met, e.g. “Is the spacebar pressed?”. If all conditions are met, all actionsin the event occur, e.g. “Create bullet object”.
-After all actions, there are sub-events that can check for other conditions, create more actions, more sub-events, and so on. Using this system, we can create complex functionality for our games and applications.
+#### Что такое таблица событий:
 
-#### The “addons” folder:
+События состоят из условий, которые проверяют выполнены ли определенные критерии, например "Нажата ли клавиша пробела?". Если все условия выполнены, происходят все действия в событии, например "Создать объект пули".
+После всех действий есть под-события, которые могут проверять другие условия, создавать дополнительные действия, больше под-событий и так далее. Используя эту систему, мы можем создавать сложную функциональность для наших игр и приложений.
 
-- event_sheet - this is the main EventSheet plugin.
-- plugin_refresher - (for developers) plugin allows to restart the main EventSheet plugin without restarting the project.
-- explore-editor-theme - (for developers) plugin allows you to get standard icons and colors of Godot 4 Editor.
+#### Папка "addons":
 
-#### Folder “demo_project”:
+- event_sheet - это основной плагин EventSheet
+- plugin_refresher - (для разработчиков) плагин позволяет перезапускать основной плагин EventSheet без перезагрузки проекта
+- explore-editor-theme - (для разработчиков) плагин позволяет получить стандартные иконки и цвета редактора Godot 4
 
-- Stores the demo scene and the object to be created to test the execution of the visual code.
+#### Папка "demo_project":
 
-#### Folder “event_sheet”:
+- Содержит демо-сцену и объекты для создания, чтобы тестировать выполнение визуального кода.
 
-- Stores the last save of the Editor's event sheet.
-## Authors
+#### Папка "event_sheet":
+
+- Сохраняет последнее сохранение таблицы событий редактора.
+
+## Авторы
 
 - [@wladekprod](https://github.com/WladekProd)

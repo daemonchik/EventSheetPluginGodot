@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="WAction" load_steps=3 format=3 uid="uid://ffcq06gttnro"]
 
-[ext_resource type="Script" uid="uid://d3jxwj22ssgwi" path="res://addons/event_sheet/scripts/action.gd" id="1_setvar"]
+[ext_resource type="Script" path="res://addons/event_sheet/scripts/action.gd" id="1_setvar"]
 [ext_resource type="Texture2D" uid="uid://b50jpu11ld31l" path="res://icon.svg" id="2_setvar"]
 
 [resource]
@@ -10,7 +10,16 @@ title = "Set variable"
 icon = ExtResource("2_setvar")
 description = "Set the value of a variable."
 parameters = {
-"Value": "",
-"Variable": ""
+"Value": {
+"default": "",
+"description": "The value to set",
+"type": 4
+},
+"Variable": {
+"default": "",
+"description": "Variable name",
+"type": 4
+}
 }
 group = "Variables"
+enabled = true

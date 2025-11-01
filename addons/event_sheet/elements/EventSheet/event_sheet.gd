@@ -7,6 +7,7 @@ extends Panel
 @onready var window_add: Window = $AddWindow
 @onready var window_add_event_or_action: Window = $AddEventOrAction
 @onready var window_set_parametr: Window = $SetParameter
+@onready var properties_box: PropertiesBox
 
 var shortcut: Shortcut = EditorInterface.get_editor_settings().get_setting("plugins/event_sheet/shortcut")
 var current_menu: String = "general"
@@ -31,6 +32,22 @@ var animation_delay_counter: float = 0.0
 func _ready() -> void:
 	load_event_sheet()
 	add_to_group("event_sheet")
+
+	# Создаем PropertiesBox программно, если он не найден в сцене
+	if properties_box == null:
+		var scroll_container = $SetParameter/Panel/MarginContainer/VBoxContainer/ScrollContainer
+		if scroll_container:
+			properties_box = load("res://addons/tnowe_extra_controls/elements/properties_box.gd").new()
+			properties_box.name = "PropertiesBox"
+			properties_box.unique_name_in_owner = true
+			properties_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			properties_box.size_flags_vertical = Control.SIZE_EXPAND_FILL
+			scroll_container.add_child(properties_box)
+			print("PropertiesBox created programmatically")
+		else:
+			push_warning("ScrollContainer not found! Cannot create PropertiesBox.")
+	else:
+		print("PropertiesBox initialized successfully")
 
 func _process(delta: float) -> void:
 	pass
@@ -471,126 +488,111 @@ func _on_add_event_or_action_gui_input(event: InputEvent, object_resource, group
 		var back_button: Button = $SetParameter/Panel/MarginContainer/VBoxContainer/Buttons/Back
 		var finish_button: Button = $SetParameter/Panel/MarginContainer/VBoxContainer/Buttons/Finish
 		
+		# Отключаем все существующие соединения
+		if back_button.button_up.is_connected(_on_back_button_up):
+			back_button.button_up.disconnect(_on_back_button_up)
+		if back_button.button_up.is_connected(_on_edit_finish_button_up):
+			back_button.button_up.disconnect(_on_edit_finish_button_up)
+		if finish_button.button_up.is_connected(_on_finish_button_up):
+			finish_button.button_up.disconnect(_on_finish_button_up)
+		if finish_button.button_up.is_connected(_on_edit_finish_button_up):
+			finish_button.button_up.disconnect(_on_edit_finish_button_up)
+
 		if object_resource is WEvent:
 			var event_resource: WEvent = object_resource
 			if event_resource.parameters.size() > 0:
-				for item in parameters_box.get_children(): item.queue_free()
-				
-				description_label.text = "{0}: {1}".format([event_resource.title, event_resource.description])
-				for key in event_resource.parameters:
-					var value = event_resource.parameters[key]
-					
-					var parameter: HBoxContainer = HBoxContainer.new()
-					parameter.name = "Param"
-					parameter.size_flags_vertical = Control.SIZE_SHRINK_BEGIN | Control.SIZE_EXPAND
-					var param_name: Label = Label.new()
-					param_name.name = "Name"
-					param_name.text = str(key)
-					param_name.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-					param_name.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN | Control.SIZE_EXPAND
-					param_name.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-					param_name.size_flags_stretch_ratio = 0
-					parameter.add_child(param_name)
-					
-					if value is int:
-						var param_input: LineEdit = LineEdit.new()
-						param_input.name = "IntValue"
-						param_input.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-						param_input.text = str(value)
-						parameter.add_child(param_input)
-					elif value is float:
-						var param_input: LineEdit = LineEdit.new()
-						param_input.name = "FloatValue"
-						param_input.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-						param_input.text = str(value)
-						parameter.add_child(param_input)
-					elif value is String:
-						var param_input: LineEdit = LineEdit.new()
-						param_input.name = "StringValue"
-						param_input.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-						param_input.text = str(value)
-						parameter.add_child(param_input)
-					elif value is NodePath:
-						var param_input: LineEdit = LineEdit.new()
-						param_input.name = "NodePathValue"
-						param_input.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-						param_input.text = str(value)
-						parameter.add_child(param_input)
-					else:
-						var param_input: LineEdit = LineEdit.new()
-						param_input.name = "_Value"
-						param_input.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-						param_input.text = str(value)
-						parameter.add_child(param_input)
-					
-					parameters_box.add_child(parameter)
-				
-				if !back_button.button_up.is_connected(_on_back_button_up):
+				if properties_box:
+					properties_box.clear()
+
+					description_label.text = "{0}: {1}".format([event_resource.title, event_resource.description])
+
+					# Используем PropertiesBox для создания полей
+					for key in event_resource.parameters:
+						var param_info = _get_parameter_info(event_resource.parameters, key)
+						var value = param_info.default
+
+						# Отладка: выводим информацию о параметре
+						print("DEBUG: Adding parameter '%s' with type %d and value: %s (type: %s)" % [key, param_info.type, str(value), type_string(typeof(value))])
+
+						match param_info.type:
+							TYPE_BOOL:
+								properties_box.add_bool(key, value if value is bool else false)
+							TYPE_INT:
+								if param_info.min != null and param_info.max != null:
+									properties_box.add_int(key, value if value is int else 0, param_info.min, param_info.max)
+								else:
+									properties_box.add_int(key, value if value is int else 0)
+							TYPE_FLOAT:
+								if param_info.min != null and param_info.max != null:
+									properties_box.add_float(key, value if value is float else 0.0, param_info.min, param_info.max, param_info.step)
+								else:
+									properties_box.add_float(key, value if value is float else 0.0)
+							TYPE_STRING:
+								properties_box.add_string(key, value if value is String else str(value))
+							_:
+								properties_box.add_string(key, value if value is String else str(value))
+
+					# Подключаем обработчики для добавления
 					back_button.button_up.connect(_on_back_button_up)
-				if !finish_button.button_up.is_connected(_on_finish_button_up):
-					finish_button.button_up.connect(_on_finish_button_up.bind("event", parameters_box, group_resource, event_resource, change_selected_body))
-				window_set_parametr.position = (get_window().size / 2) - (window_set_parametr.size / 2)
-				window_set_parametr.show()
+					finish_button.button_up.connect(_on_properties_finish_button_up.bind("event", group_resource, event_resource, change_selected_body))
+					window_set_parametr.position = (get_window().size / 2) - (window_set_parametr.size / 2)
+					window_set_parametr.show()
 			else:
 				var new_data = {}
 				add_event(group_resource, event_resource, change_selected_body, new_data)
 		elif object_resource is WAction:
 			var action_resource: WAction = object_resource
 			if action_resource.parameters.size() > 0:
-				for item in parameters_box.get_children(): item.queue_free()
-				
+				properties_box.clear()
+
 				description_label.text = "{0}: {1}".format([action_resource.title, action_resource.description])
+
+				# Используем PropertiesBox для создания полей
 				for key in action_resource.parameters:
-					var value = action_resource.parameters[key]
-					
-					var parameter: HBoxContainer = HBoxContainer.new()
-					parameter.name = "Param"
-					parameter.size_flags_vertical = Control.SIZE_SHRINK_BEGIN | Control.SIZE_EXPAND
-					var param_name: Label = Label.new()
-					param_name.name = "Name"
-					param_name.text = str(key)
-					param_name.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-					param_name.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN | Control.SIZE_EXPAND
-					param_name.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-					param_name.size_flags_stretch_ratio = 0
-					parameter.add_child(param_name)
-					
-					if value is int:
-						var param_input: LineEdit = LineEdit.new()
-						param_input.name = "IntValue"
-						param_input.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-						param_input.text = str(value)
-						parameter.add_child(param_input)
-					elif value is String:
-						var param_input: LineEdit = LineEdit.new()
-						param_input.name = "StringValue"
-						param_input.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-						param_input.text = str(value)
-						parameter.add_child(param_input)
-					elif value is NodePath:
-						var param_input: LineEdit = LineEdit.new()
-						param_input.name = "NodePathValue"
-						param_input.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-						param_input.text = str(value)
-						parameter.add_child(param_input)
-					else:
-						var param_input: LineEdit = LineEdit.new()
-						param_input.name = "_Value"
-						param_input.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-						param_input.text = str(value)
-						parameter.add_child(param_input)
-					
-					parameters_box.add_child(parameter)
-				
-				if !back_button.button_up.is_connected(_on_back_button_up):
-					back_button.button_up.connect(_on_back_button_up)
-				if !finish_button.button_up.is_connected(_on_finish_button_up):
-					finish_button.button_up.connect(_on_finish_button_up.bind("action", parameters_box, group_resource, action_resource, change_selected_body))
+					var param_info = _get_parameter_info(action_resource.parameters, key)
+					var value = param_info.default
+
+					match param_info.type:
+						TYPE_BOOL:
+							properties_box.add_bool(key, value if value is bool else false)
+						TYPE_INT:
+							if param_info.min != null and param_info.max != null:
+								properties_box.add_int(key, value if value is int else 0, param_info.min, param_info.max)
+							else:
+								properties_box.add_int(key, value if value is int else 0)
+						TYPE_FLOAT:
+							if param_info.min != null and param_info.max != null:
+								properties_box.add_float(key, value if value is float else 0.0, param_info.min, param_info.max, param_info.step)
+							else:
+								properties_box.add_float(key, value if value is float else 0.0)
+						TYPE_STRING:
+							properties_box.add_string(key, value if value is String else str(value))
+						_:
+							properties_box.add_string(key, value if value is String else str(value))
+
+				# Подключаем обработчики для добавления
+				back_button.button_up.connect(_on_back_button_up)
+				finish_button.button_up.connect(_on_properties_finish_button_up.bind("action", group_resource, action_resource, change_selected_body))
 				window_set_parametr.position = (get_window().size / 2) - (window_set_parametr.size / 2)
 				window_set_parametr.show()
 			else:
 				var new_data = {}
 				add_action(group_resource, action_resource, change_selected_body, new_data)
+
+func _on_properties_finish_button_up(type: String, group_resource: WGroup, resource, change_selected_body: bool) -> void:
+	"""Завершает добавление с использованием PropertiesBox"""
+	var new_data: Dictionary = properties_box.get_all()
+
+	# Сбрасываем счетчик задержки перед добавлением новых элементов
+	animation_delay_counter = 0.0
+
+	match type:
+		"event":
+			add_event(group_resource, resource, change_selected_body, new_data)
+		"action":
+			add_action(group_resource, resource, change_selected_body, new_data)
+
+	window_set_parametr.hide()
 
 func _on_finish_button_up(type: String, parameters_box: VBoxContainer, group_resource: WGroup, resource, change_selected_body: bool) -> void:
 
@@ -599,7 +601,7 @@ func _on_finish_button_up(type: String, parameters_box: VBoxContainer, group_res
 	for param: HBoxContainer in parameters_box.get_children():
 		var p_name: Label = param.get_child(0)
 		var p_value = param.get_child(1)
-		if p_value is LineEdit: new_data[p_name.text] = p_value.text
+		new_data[p_name.text] = _get_control_value(p_value)
 
 	# Сбрасываем счетчик задержки перед добавлением новых элементов
 	animation_delay_counter = 0.0
@@ -622,13 +624,17 @@ func _on_back_button_up() -> void:
 
 func edit_event(event):
 	"""Редактирует параметры существующего события"""
-	if event.event_resource.parameters.size() > 0:
-		show_edit_window("event", event)
+	if event and event.event_resource:
+		if event.event_resource.parameters.size() > 0:
+			show_edit_window("event", event)
+		# Если параметров нет, ничего не делаем - редактировать нечего
 
 func edit_action(action):
 	"""Редактирует параметры существующего действия"""
-	if action.action_resource.parameters.size() > 0:
-		show_edit_window("action", action)
+	if action and action.action_resource:
+		if action.action_resource.parameters.size() > 0:
+			show_edit_window("action", action)
+		# Если параметров нет, ничего не делаем - редактировать нечего
 
 func toggle_event(event):
 	"""Переключает включение/отключение события"""
@@ -643,128 +649,104 @@ func toggle_action(action):
 	save_event_sheet()
 
 func show_edit_window(type: String, element):
-	"""Показывает окно редактирования параметров"""
+	"""Показывает окно редактирования параметров с использованием PropertiesBox"""
 	var description_label: Label = $SetParameter/Panel/MarginContainer/VBoxContainer/Description
-	var parameters_box: VBoxContainer = $SetParameter/Panel/MarginContainer/VBoxContainer/ScrollContainer/Parameters
 	var back_button: Button = $SetParameter/Panel/MarginContainer/VBoxContainer/Buttons/Back
 	var finish_button: Button = $SetParameter/Panel/MarginContainer/VBoxContainer/Buttons/Finish
 
-	# Очищаем предыдущие параметры
-	for item in parameters_box.get_children(): item.queue_free()
+	# Очищаем PropertiesBox
+	properties_box.clear()
+
+	# Отключаем все существующие соединения
+	if back_button.button_up.is_connected(_on_back_button_up):
+		back_button.button_up.disconnect(_on_back_button_up)
+	if back_button.button_up.is_connected(_on_edit_properties_finish_button_up):
+		back_button.button_up.disconnect(_on_edit_properties_finish_button_up)
+	if finish_button.button_up.is_connected(_on_properties_finish_button_up):
+		finish_button.button_up.disconnect(_on_properties_finish_button_up)
+	if finish_button.button_up.is_connected(_on_edit_properties_finish_button_up):
+		finish_button.button_up.disconnect(_on_edit_properties_finish_button_up)
 
 	match type:
 		"event":
 			var event_resource: WEvent = element.event_resource
 			description_label.text = "Edit {0}: {1}".format([event_resource.title, event_resource.description])
 
-			# Заполняем существующие параметры
+			# Заполняем существующие параметры в PropertiesBox
 			for key in event_resource.parameters:
-				var value = element.new_data.get(key, event_resource.parameters[key])
+				var param_info = _get_parameter_info(event_resource.parameters, key)
+				var value = element.new_data.get(key, param_info.default)
 
-				var parameter: HBoxContainer = HBoxContainer.new()
-				parameter.name = "Param"
-				parameter.size_flags_vertical = Control.SIZE_SHRINK_BEGIN | Control.SIZE_EXPAND
-				var param_name: Label = Label.new()
-				param_name.name = "Name"
-				param_name.text = str(key)
-				param_name.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-				param_name.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN | Control.SIZE_EXPAND
-				param_name.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-				param_name.size_flags_stretch_ratio = 0
-				parameter.add_child(param_name)
+				match param_info.type:
+					TYPE_BOOL:
+						properties_box.add_bool(key, value if value is bool else false)
+					TYPE_INT:
+						if param_info.min != null and param_info.max != null:
+							properties_box.add_int(key, value if value is int else 0, param_info.min, param_info.max)
+						else:
+							properties_box.add_int(key, value if value is int else 0)
+					TYPE_FLOAT:
+						if param_info.min != null and param_info.max != null:
+							properties_box.add_float(key, value if value is float else 0.0, param_info.min, param_info.max, param_info.step)
+						else:
+							properties_box.add_float(key, value if value is float else 0.0)
+					TYPE_STRING:
+						properties_box.add_string(key, value if value is String else str(value))
+					_:
+						properties_box.add_string(key, value if value is String else str(value))
 
-				if value is int:
-					var param_input: LineEdit = LineEdit.new()
-					param_input.name = "IntValue"
-					param_input.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-					param_input.text = str(value)
-					parameter.add_child(param_input)
-				elif value is float:
-					var param_input: LineEdit = LineEdit.new()
-					param_input.name = "FloatValue"
-					param_input.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-					param_input.text = str(value)
-					parameter.add_child(param_input)
-				elif value is String:
-					var param_input: LineEdit = LineEdit.new()
-					param_input.name = "StringValue"
-					param_input.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-					param_input.text = str(value)
-					parameter.add_child(param_input)
-				elif value is NodePath:
-					var param_input: LineEdit = LineEdit.new()
-					param_input.name = "NodePathValue"
-					param_input.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-					param_input.text = str(value)
-					parameter.add_child(param_input)
-				else:
-					var param_input: LineEdit = LineEdit.new()
-					param_input.name = "_Value"
-					param_input.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-					param_input.text = str(value)
-					parameter.add_child(param_input)
-
-				parameters_box.add_child(parameter)
-
-			if !back_button.button_up.is_connected(_on_back_button_up):
-				back_button.button_up.connect(_on_back_button_up)
-			if !finish_button.button_up.is_connected(_on_edit_finish_button_up):
-				finish_button.button_up.connect(_on_edit_finish_button_up.bind("event", parameters_box, element))
+			# Подключаем обработчики для редактирования
+			back_button.button_up.connect(_on_back_button_up)
+			finish_button.button_up.connect(_on_edit_properties_finish_button_up.bind("event", element))
 
 		"action":
 			var action_resource: WAction = element.action_resource
 			description_label.text = "Edit {0}: {1}".format([action_resource.title, action_resource.description])
 
-			# Заполняем существующие параметры
+			# Заполняем существующие параметры в PropertiesBox
 			for key in action_resource.parameters:
-				var value = element.new_data.get(key, action_resource.parameters[key])
+				var param_info = _get_parameter_info(action_resource.parameters, key)
+				var value = element.new_data.get(key, param_info.default)
 
-				var parameter: HBoxContainer = HBoxContainer.new()
-				parameter.name = "Param"
-				parameter.size_flags_vertical = Control.SIZE_SHRINK_BEGIN | Control.SIZE_EXPAND
-				var param_name: Label = Label.new()
-				param_name.name = "Name"
-				param_name.text = str(key)
-				param_name.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-				param_name.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN | Control.SIZE_EXPAND
-				param_name.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-				param_name.size_flags_stretch_ratio = 0
-				parameter.add_child(param_name)
+				match param_info.type:
+					TYPE_BOOL:
+						properties_box.add_bool(key, value if value is bool else false)
+					TYPE_INT:
+						if param_info.min != null and param_info.max != null:
+							properties_box.add_int(key, value if value is int else 0, param_info.min, param_info.max)
+						else:
+							properties_box.add_int(key, value if value is int else 0)
+					TYPE_FLOAT:
+						if param_info.min != null and param_info.max != null:
+							properties_box.add_float(key, value if value is float else 0.0, param_info.min, param_info.max, param_info.step)
+						else:
+							properties_box.add_float(key, value if value is float else 0.0)
+					TYPE_STRING:
+						properties_box.add_string(key, value if value is String else str(value))
+					_:
+						properties_box.add_string(key, value if value is String else str(value))
 
-				if value is int:
-					var param_input: LineEdit = LineEdit.new()
-					param_input.name = "IntValue"
-					param_input.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-					param_input.text = str(value)
-					parameter.add_child(param_input)
-				elif value is String:
-					var param_input: LineEdit = LineEdit.new()
-					param_input.name = "StringValue"
-					param_input.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-					param_input.text = str(value)
-					parameter.add_child(param_input)
-				elif value is NodePath:
-					var param_input: LineEdit = LineEdit.new()
-					param_input.name = "NodePathValue"
-					param_input.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-					param_input.text = str(value)
-					parameter.add_child(param_input)
-				else:
-					var param_input: LineEdit = LineEdit.new()
-					param_input.name = "_Value"
-					param_input.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-					param_input.text = str(value)
-					parameter.add_child(param_input)
-
-				parameters_box.add_child(parameter)
-
-			if !back_button.button_up.is_connected(_on_back_button_up):
-				back_button.button_up.connect(_on_back_button_up)
-			if !finish_button.button_up.is_connected(_on_edit_finish_button_up):
-				finish_button.button_up.connect(_on_edit_finish_button_up.bind("action", parameters_box, element))
+			# Подключаем обработчики для редактирования
+			back_button.button_up.connect(_on_back_button_up)
+			finish_button.button_up.connect(_on_edit_properties_finish_button_up.bind("action", element))
 
 	window_set_parametr.position = (get_window().size / 2) - (window_set_parametr.size / 2)
 	window_set_parametr.show()
+
+func _on_edit_properties_finish_button_up(type: String, element) -> void:
+	"""Завершает редактирование с использованием PropertiesBox и обновляет элемент"""
+	var new_data: Dictionary = properties_box.get_all()
+
+	match type:
+		"event":
+			element.new_data = new_data
+			element.update_visual()
+		"action":
+			element.new_data = new_data
+			element.update_visual()
+
+	window_set_parametr.hide()
+	save_event_sheet()
 
 func _on_edit_finish_button_up(type: String, parameters_box: VBoxContainer, element) -> void:
 	"""Завершает редактирование и обновляет элемент"""
@@ -773,8 +755,7 @@ func _on_edit_finish_button_up(type: String, parameters_box: VBoxContainer, elem
 	for param: HBoxContainer in parameters_box.get_children():
 		var p_name: Label = param.get_child(0)
 		var p_value = param.get_child(1)
-		if p_value is LineEdit:
-			new_data[p_name.text] = p_value.text
+		new_data[p_name.text] = _get_control_value(p_value)
 
 	match type:
 		"event":
@@ -874,7 +855,166 @@ func add_comment_with_text(blank_body, text: String):
 		blank_body.comments.append(comment)
 
 # # # # # # # # # # #
-# Theme Functions  #
+# Parameter Functions #
 # # # # # # # # # #
 
-# Функции тем удалены
+func _get_parameter_info(parameters: Dictionary, key: String) -> Dictionary:
+	"""Получает информацию о параметре (тип, значение по умолчанию, описание)"""
+	var param_value = parameters[key]
+
+	# Новый формат: {"type": TYPE_INT, "default": 5, "description": "Count"}
+	if param_value is Dictionary:
+		var default_value = param_value.get("default", "")
+		var param_type = param_value.get("type", TYPE_STRING)
+
+		# Преобразуем default_value в правильный тип
+		match param_type:
+			TYPE_BOOL:
+				default_value = default_value if default_value is bool else false
+			TYPE_INT:
+				default_value = default_value if default_value is int else 0
+			TYPE_FLOAT:
+				default_value = default_value if default_value is float else 0.0
+			TYPE_STRING:
+				default_value = default_value if default_value is String else str(default_value)
+
+		return {
+			"type": param_type,
+			"default": default_value,
+			"description": param_value.get("description", ""),
+			"min": param_value.get("min"),
+			"max": param_value.get("max"),
+			"step": param_value.get("step", 1.0)
+		}
+	# Старый формат: "default_value"
+	else:
+		var param_type = TYPE_STRING
+		var default_value = param_value
+
+		if param_value is int:
+			param_type = TYPE_INT
+		elif param_value is float:
+			param_type = TYPE_FLOAT
+		elif param_value is bool:
+			param_type = TYPE_BOOL
+		else:
+			# Если это строка, попробуем распарсить как число или булево
+			if param_value is String:
+				if param_value.is_valid_int():
+					param_type = TYPE_INT
+					default_value = param_value.to_int()
+				elif param_value.is_valid_float():
+					param_type = TYPE_FLOAT
+					default_value = param_value.to_float()
+				elif param_value.to_lower() in ["true", "false"]:
+					param_type = TYPE_BOOL
+					default_value = param_value.to_lower() == "true"
+
+		return {
+			"type": param_type,
+			"default": default_value,
+			"description": "",
+			"min": null,
+			"max": null,
+			"step": 1.0
+		}
+
+func _create_parameter_control(param_info: Dictionary, value, key: String = "") -> Control:
+	"""Создает подходящий контрол для типа параметра"""
+	var param_type = param_info.type
+
+	match param_type:
+		TYPE_BOOL:
+			var checkbox = CheckBox.new()
+			checkbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			checkbox.button_pressed = bool(value)
+			return checkbox
+
+		TYPE_INT:
+			var spinbox = SpinBox.new()
+			spinbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			spinbox.value = int(value)
+			if param_info.min != null:
+				spinbox.min_value = param_info.min
+			if param_info.max != null:
+				spinbox.max_value = param_info.max
+			spinbox.step = param_info.step
+			return spinbox
+
+		TYPE_FLOAT:
+			var spinbox = SpinBox.new()
+			spinbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			spinbox.value = float(value)
+			if param_info.min != null:
+				spinbox.min_value = param_info.min
+			if param_info.max != null:
+				spinbox.max_value = param_info.max
+			# Если min/max не установлены, используем значения по умолчанию
+			if param_info.min == null and param_info.max == null:
+				# Специальная обработка для угла - диапазон 0-360
+				if param_info.get("description", "").to_lower().contains("angle") or key.to_lower().contains("angle"):
+					spinbox.min_value = 0
+					spinbox.max_value = 360
+				else:
+					# Значения по умолчанию для других float параметров
+					spinbox.min_value = -1000
+					spinbox.max_value = 1000
+			spinbox.step = param_info.step if param_info.step != null else 0.1
+			return spinbox
+
+		TYPE_VECTOR2:
+			var line_edit = LineEdit.new()
+			line_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			if value is Vector2:
+				line_edit.text = "%s, %s" % [value.x, value.y]
+			else:
+				line_edit.text = str(value)
+			line_edit.placeholder_text = "x, y"
+			return line_edit
+
+		TYPE_VECTOR3:
+			var line_edit = LineEdit.new()
+			line_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			if value is Vector3:
+				line_edit.text = "%s, %s, %s" % [value.x, value.y, value.z]
+			else:
+				line_edit.text = str(value)
+			line_edit.placeholder_text = "x, y, z"
+			return line_edit
+
+		TYPE_COLOR:
+			var color_picker = ColorPickerButton.new()
+			color_picker.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			if value is Color:
+				color_picker.color = value
+			return color_picker
+
+		TYPE_RECT2:
+			var line_edit = LineEdit.new()
+			line_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			if value is Rect2:
+				line_edit.text = "%s, %s, %s, %s" % [value.position.x, value.position.y, value.size.x, value.size.y]
+			else:
+				line_edit.text = str(value)
+			line_edit.placeholder_text = "x, y, w, h"
+			return line_edit
+
+		_:
+			# Default to LineEdit for strings and unknown types
+			var line_edit = LineEdit.new()
+			line_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			line_edit.text = str(value)
+			return line_edit
+
+func _get_control_value(control: Control):
+	"""Получает значение из контрола в зависимости от его типа"""
+	if control is LineEdit:
+		return control.text
+	elif control is CheckBox:
+		return control.button_pressed
+	elif control is SpinBox:
+		return control.value
+	elif control is ColorPickerButton:
+		return control.color
+	else:
+		return str(control)

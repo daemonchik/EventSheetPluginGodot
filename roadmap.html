@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EventSheet Plugin - Roadmap</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        header {
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+            border-bottom: 3px solid #667eea;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .timeline {
+            position: relative;
+            padding: 20px 0;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.3);
+            top: 0;
+        }
+
+        .phase {
+            margin-bottom: 50px;
+            opacity: 0;
+            animation: fadeIn 0.6s ease-out forwards;
+        }
+
+        .phase:nth-child(1) { animation-delay: 0.1s; }
+        .phase:nth-child(2) { animation-delay: 0.2s; }
+        .phase:nth-child(3) { animation-delay: 0.3s; }
+        .phase:nth-child(4) { animation-delay: 0.4s; }
+        .phase:nth-child(5) { animation-delay: 0.5s; }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .phase-content {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            position: relative;
+            margin-left: 0;
+        }
+
+        .phase:nth-child(odd) .phase-content {
+            margin-left: 0;
+            margin-right: 50%;
+        }
+
+        .phase:nth-child(even) .phase-content {
+            margin-left: 50%;
+            margin-right: 0;
+        }
+
+        @media (max-width: 768px) {
+            .timeline::before {
+                left: 20px;
+            }
+
+            .phase-content {
+                margin-left: 0 !important;
+                margin-right: 0 !important;
+                margin-left: 60px;
+            }
+
+            .phase:nth-child(odd) .phase-content,
+            .phase:nth-child(even) .phase-content {
+                margin-left: 60px;
+            }
+        }
+
+        .phase-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            gap: 15px;
+        }
+
+        .phase-number {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.3em;
+            flex-shrink: 0;
+        }
+
+        .phase-info h2 {
+            font-size: 1.5em;
+            margin-bottom: 5px;
+            color: #667eea;
+        }
+
+        .phase-meta {
+            display: flex;
+            gap: 20px;
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .status {
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.85em;
+        }
+
+        .status.completed {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status.planning {
+            background: #cfe2ff;
+            color: #084298;
+        }
+
+        .phase-description {
+            margin: 20px 0;
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .features {
+            margin-top: 20px;
+        }
+
+        .features h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .feature-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+        }
+
+        .feature-item {
+            background: #f8f9fa;
+            padding: 12px 15px;
+            border-left: 4px solid #667eea;
+            border-radius: 4px;
+            font-size: 0.95em;
+            transition: all 0.3s ease;
+        }
+
+        .feature-item:hover {
+            background: #e7e9f3;
+            transform: translateX(5px);
+        }
+
+        .duration {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 8px 15px;
+            background: #667eea;
+            color: white;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+
+        .metrics {
+            margin-top: 60px;
+            padding: 40px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .metrics h2 {
+            color: #667eea;
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 2em;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+        }
+
+        .metric-card {
+            padding: 25px;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .metric-card h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+
+        .metric-card ul {
+            list-style: none;
+            line-height: 1.8;
+        }
+
+        .metric-card li::before {
+            content: '✓ ';
+            color: #667eea;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+
+        .contribute {
+            margin-top: 60px;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .contribute h2 {
+            color: #667eea;
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 2em;
+        }
+
+        .contribute-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+        }
+
+        .contribute-card {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 8px;
+            border-top: 4px solid #667eea;
+            transition: all 0.3s ease;
+        }
+
+        .contribute-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.2);
+        }
+
+        .contribute-card h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .contribute-card ol {
+            margin-left: 20px;
+            line-height: 1.8;
+            color: #555;
+        }
+
+        footer {
+            text-align: center;
+            padding: 30px 20px;
+            color: rgba(255, 255, 255, 0.8);
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            margin-top: 60px;
+        }
+
+        .scroll-indicator {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+            opacity: 0;
+            transition: all 0.3s ease;
+            pointer-events: none;
+        }
+
+        .scroll-indicator.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .scroll-indicator:hover {
+            transform: translateY(-5px);
+        }
+
+        .phase-dot {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 20px;
+            background: white;
+            border: 4px solid #667eea;
+            border-radius: 50%;
+            top: 30px;
+            z-index: 10;
+        }
+
+        .phase:nth-child(odd) .phase-dot {
+            left: 50%;
+        }
+
+        .phase:nth-child(even) .phase-dot {
+            left: 50%;
+        }
+
+        @media (max-width: 768px) {
+            .phase-dot {
+                left: 20px;
+            }
+
+            header h1 {
+                font-size: 1.8em;
+            }
+
+            .timeline::before {
+                left: 20px;
+            }
+        }
+
+        .current {
+            border: 3px solid #28a745;
+            background: #f0fff4;
+        }
+
+        .current .phase-number {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7);
+            }
+            50% {
+                box-shadow: 0 0 0 10px rgba(40, 167, 69, 0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🎮 EventSheet Plugin</h1>
+        <p>Визуальное событийно-ориентированное программирование для Godot 4</p>
+    </header>
+
+    <div class="container">
+        <div class="timeline">
+            <!-- Фаза 1 -->
+            <div class="phase current">
+                <div class="phase-dot"></div>
+                <div class="phase-content">
+                    <div class="phase-header">
+                        <div class="phase-number">✅</div>
+                        <div class="phase-info">
+                            <h2>v1.0 - Основы</h2>
+                            <div class="phase-meta">
+                                <span class="status completed">Завершено</span>
+                                <span>Production Ready</span>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="phase-description">
+                        Полнофункциональная система событийно-ориентированного программирования с базовым функционалом для создания игровой логики без написания кода.
+                    </p>
+                    <div class="features">
+                        <h3>📦 Включает:</h3>
+                        <div class="feature-list">
+                            <div class="feature-item">✓ Runtime система</div>
+                            <div class="feature-item">✓ Визуальный редактор</div>
+                            <div class="feature-item">✓ События (Input, Physics)</div>
+                            <div class="feature-item">✓ Действия (Objects, Physics)</div>
+                            <div class="feature-item">✓ Условия (Comparisons)</div>
+                            <div class="feature-item">✓ Система выражений</div>
+                            <div class="feature-item">✓ JSON сохранение</div>
+                            <div class="feature-item">✓ Плагинная система</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Фаза 2 -->
+            <div class="phase">
+                <div class="phase-dot"></div>
+                <div class="phase-content">
+                    <div class="phase-header">
+                        <div class="phase-number">2️⃣</div>
+                        <div class="phase-info">
+                            <h2>v1.1 – v1.5 - Базовые улучшения</h2>
+                            <div class="phase-meta">
+                                <span class="status planning">Планируется</span>
+                                <span>6 месяцев</span>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="phase-description">
+                        Усиление функциональности с типизацией, событиями объектов, новыми действиями и поддержкой условной логики.
+                    </p>
+                    <div class="features">
+                        <h3>🎯 Подэтапы:</h3>
+                        <div class="feature-list">
+                            <div class="feature-item">🔹 v1.1: Типизация параметров</div>
+                            <div class="feature-item">🔹 v1.1: Автодополнение</div>
+                            <div class="feature-item">🔹 v1.2: События объектов</div>
+                            <div class="feature-item">🔹 v1.2: UI события</div>
+                            <div class="feature-item">🔹 v1.3: Анимации</div>
+                            <div class="feature-item">🔹 v1.3: Загрузка сцен</div>
+                            <div class="feature-item">🔹 v1.4: If-Then-Else</div>
+                            <div class="feature-item">🔹 v1.5: Циклы (for/while)</div>
+                        </div>
+                    </div>
+                    <span class="duration">⏱️ Старт: месяц 1-2</span>
+                </div>
+            </div>
+
+            <!-- Фаза 3 -->
+            <div class="phase">
+                <div class="phase-dot"></div>
+                <div class="phase-content">
+                    <div class="phase-header">
+                        <div class="phase-number">3️⃣</div>
+                        <div class="phase-info">
+                            <h2>v2.0 - Продвинутые возможности</h2>
+                            <div class="phase-meta">
+                                <span class="status planning">Планируется</span>
+                                <span>12 месяцев</span>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="phase-description">
+                        Внедрение функций, модулей, полноценной отладки, расширенных типов данных и полного переделки интерфейса.
+                    </p>
+                    <div class="features">
+                        <h3>🚀 Основные компоненты:</h3>
+                        <div class="feature-list">
+                            <div class="feature-item">⭐ Функции и модули</div>
+                            <div class="feature-item">⭐ Визуальная отладка</div>
+                            <div class="feature-item">⭐ Брейкпоинты</div>
+                            <div class="feature-item">⭐ Массивы и словари</div>
+                            <div class="feature-item">⭐ JSON/XML поддержка</div>
+                            <div class="feature-item">⭐ SQLite интеграция</div>
+                            <div class="feature-item">⭐ UI Redesign</div>
+                            <div class="feature-item">⭐ Зум и навигация</div>
+                        </div>
+                    </div>
+                    <span class="duration">⏱️ Старт: месяц 7-8</span>
+                </div>
+            </div>
+
+            <!-- Фаза 4 -->
+            <div class="phase">
+                <div class="phase-dot"></div>
+                <div class="phase-content">
+                    <div class="phase-header">
+                        <div class="phase-number">4️⃣</div>
+                        <div class="phase-info">
+                            <h2>v2.5+ - Специализированные инструменты</h2>
+                            <div class="phase-meta">
+                                <span class="status planning">Планируется</span>
+                                <span>9 месяцев</span>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="phase-description">
+                        Инструменты для конкретных жанров игр, интеграции с популярными сервисами и обширная библиотека примеров.
+                    </p>
+                    <div class="features">
+                        <h3>🎮 Жанр-инструменты:</h3>
+                        <div class="feature-list">
+                            <div class="feature-item">🎯 RPG система (квесты, инвентарь)</div>
+                            <div class="feature-item">🎯 Платформер механики</div>
+                            <div class="feature-item">🎯 AI и патфайндинг</div>
+                            <div class="feature-item">🎯 Система пазлов</div>
+                            <div class="feature-item">🔗 Steam интеграция</div>
+                            <div class="feature-item">🔗 Discord Rich Presence</div>
+                            <div class="feature-item">📚 Шаблоны и примеры</div>
+                            <div class="feature-item">📚 Интерактивные уроки</div>
+                        </div>
+                    </div>
+                    <span class="duration">⏱️ Старт: месяц 18</span>
+                </div>
+            </div>
+
+            <!-- Фаза 5 -->
+            <div class="phase">
+                <div class="phase-dot"></div>
+                <div class="phase-content">
+                    <div class="phase-header">
+                        <div class="phase-number">5️⃣</div>
+                        <div class="phase-info">
+                            <h2>v3.0+ - Масштабирование</h2>
+                            <div class="phase-meta">
+                                <span class="status planning">Планируется</span>
+                                <span>12+ месяцев</span>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="phase-description">
+                        Оптимизация производительности, инструменты для командной разработки и полнофункциональная экосистема плагинов.
+                    </p>
+                    <div class="features">
+                        <h3>💪 Стратегические инициативы:</h3>
+                        <div class="feature-list">
+                            <div class="feature-item">⚡ Кеширование и пулинг</div>
+                            <div class="feature-item">⚡ Многопоточность</div>
+                            <div class="feature-item">⚡ Компиляция в GDScript</div>
+                            <div class="feature-item">⚡ Веб-экспорт (HTML5)</div>
+                            <div class="feature-item">👥 Git интеграция</div>
+                            <div class="feature-item">👥 Реал-тайм коллаборация</div>
+                            <div class="feature-item">🛠️ SDK для плагинов</div>
+                            <div class="feature-item">🛠️ Маркетплейс расширений</div>
+                        </div>
+                    </div>
+                    <span class="duration">⏱️ Старт: месяц 27</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Метрики успеха -->
+        <div class="metrics">
+            <h2>📊 Метрики успеха</h2>
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <h3>Краткосрочные (6 месяцев)</h3>
+                    <ul>
+                        <li>99.5% стабильность</li>
+                        <li>100+ активных пользователей</li>
+                        <li>50+ готовых примеров</li>
+                        <li>10+ контрибьюторов</li>
+                        <li>80%+ покрытие тестами</li>
+                    </ul>
+                </div>
+                <div class="metric-card">
+                    <h3>Среднесрочные (1-2 года)</h3>
+                    <ul>
+                        <li>5+ коммерческих проектов</li>
+                        <li>Интеграция в курсы обучения</li>
+                        <li>100+ плагинов</li>
+                        <li>Поддержка всех жанров</li>
+                        <li>Активное сообщество</li>
+                    </ul>
+                </div>
+                <div class="metric-card">
+                    <h3>Долгосрочные (3+ года)</h3>
+                    <ul>
+                        <li>10,000+ пользователей</li>
+                        <li>100+ активных разработчиков</li>
+                        <li>Де-факто стандарт Godot</li>
+                        <li>Полная экосистема инструментов</li>
+                        <li>Официальная поддержка Godot</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Как внести вклад -->
+        <div class="contribute">
+            <h2>🤝 Как внести вклад</h2>
+            <div class="contribute-grid">
+                <div class="contribute-card">
+                    <h3>💻 Разработчикам</h3>
+                    <ol>
+                        <li>Изучить текущий код в <code>/addons/event_sheet/</code></li>
+                        <li>Выбрать задачу из roadmap</li>
+                        <li>Создать Issue с описанием</li>
+                        <li>Реализовать и протестировать</li>
+                        <li>Создать Pull Request</li>
+                    </ol>
+                </div>
+                <div class="contribute-card">
+                    <h3>🎨 Дизайнерам/Тестерам</h3>
+                    <ol>
+                        <li>Тестировать новые версии</li>
+                        <li>Создавать туториалы</li>
+                        <li>Предлагать улучшения UX</li>
+                        <li>Делиться ошибками</li>
+                        <li>Писать документацию</li>
+                    </ol>
+                </div>
+                <div class="contribute-card">
+                    <h3>👥 Пользователям</h3>
+                    <ol>
+                        <li>Использовать в реальных проектах</li>
+                        <li>Сообщать об ошибках</li>
+                        <li>Участвовать в обсуждениях</li>
+                        <li>Делиться примерами</li>
+                        <li>Давать обратную связь</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>📌 EventSheet Plugin Roadmap | Живой документ, обновляется регулярно</p>
+        <p style="margin-top: 10px; opacity: 0.7;">© 2025 EventSheet Project | Создано для сообщества Godot</p>
+    </footer>
+
+    <div class="scroll-indicator" id="scrollBtn" title="Вернуться наверх">
+        <span style="font-size: 20px;">↑</span>
+    </div>
+
+    <script>
+        // Scroll to top button
+        const scrollBtn = document.getElementById('scrollBtn');
+
+        window.addEventListener('scroll', () => {
+            if (window.pageYOffset > 300) {
+                scrollBtn.classList.add('show');
+            } else {
+                scrollBtn.classList.remove('show');
+            }
+        });
+
+        scrollBtn.addEventListener('click', () => {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+
+        // Intersection Observer для анимации при появлении в viewport
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.phase').forEach(phase => {
+            observer.observe(phase);
+        });
+    </script>
+</body>
+</html>

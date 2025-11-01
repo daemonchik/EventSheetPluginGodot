@@ -13,23 +13,50 @@ func init_object(resource, icon_texture: TextureRect, group_label: Label, label:
 			label.text = "{0}: ".format([resource.title])
 			var i = 1
 			for key in resource.parameters:
-				var value = resource.parameters[key]
-				var new_value = new_data.get(key, value)  # Используем get() с дефолтным значением
+				var param_info = _get_parameter_info(resource.parameters, key)
+				var default_value = param_info.default
+				var new_value = new_data.get(key, default_value)  # Используем get() с правильным дефолтным значением
 
-				if value is int:
-					label.text += "{0} - {1}".format([str(key), str(new_value)])
-				elif value is String:
-					label.text += "{0} - {1}".format([str(key), str(new_value)])
-				elif value is NodePath:
-					label.text += "{0} - {1}".format([str(key), str(new_value)])
-				else:
-					label.text += "{0} - {1}".format([str(key), str(new_value)])
+				label.text += "{0} - {1}".format([str(key), str(new_value)])
 
 				if i < resource.parameters.size():
 					label.text += ", "
 				i += 1
 		else:
 			label.text = "{0}".format([resource.title])
+
+func _get_parameter_info(parameters: Dictionary, key: String) -> Dictionary:
+	"""Получает информацию о параметре (тип, значение по умолчанию, описание)"""
+	var param_value = parameters[key]
+
+	# Новый формат: {"type": TYPE_INT, "default": 5, "description": "Count"}
+	if param_value is Dictionary:
+		return {
+			"type": param_value.get("type", TYPE_STRING),
+			"default": param_value.get("default", ""),
+			"description": param_value.get("description", ""),
+			"min": param_value.get("min"),
+			"max": param_value.get("max"),
+			"step": param_value.get("step", 1.0)
+		}
+	# Старый формат: "default_value"
+	else:
+		var param_type = TYPE_STRING
+		if param_value is int:
+			param_type = TYPE_INT
+		elif param_value is float:
+			param_type = TYPE_FLOAT
+		elif param_value is bool:
+			param_type = TYPE_BOOL
+
+		return {
+			"type": param_type,
+			"default": param_value,
+			"description": "",
+			"min": null,
+			"max": null,
+			"step": 1.0
+		}
 
 func _save(resource: Resource) -> Dictionary:
 	var data: Dictionary = {

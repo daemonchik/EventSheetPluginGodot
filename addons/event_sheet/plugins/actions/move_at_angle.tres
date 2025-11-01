@@ -10,8 +10,23 @@ title = "Move at angle"
 icon = ExtResource("1_moveangle")
 description = "Move object at specified angle and speed."
 parameters = {
-"Name": "",
-"Angle": 0.0,
-"Speed": 100.0
+"Name": {
+	"type": 4,
+	"default": "",
+	"description": "Object name"
+},
+"Angle": {
+	"type": 3,
+	"default": 0.0,
+	"description": "Movement angle in degrees",
+	"min": 0,
+	"max": 360
+},
+"Speed": {
+	"type": 3,
+	"default": 100.0,
+	"description": "Movement speed",
+	"min": 0
+}
 }
 group = "Movement"

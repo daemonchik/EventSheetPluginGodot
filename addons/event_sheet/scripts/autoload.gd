@@ -10,6 +10,11 @@ var body_items: Dictionary = {}
 # Зарегистрированные обработчики событий
 var event_handlers: Dictionary = {}
 
+# Кэши для оптимизации производительности
+var event_cache: Dictionary = {}  # event_type -> Array[events]
+var action_cache: Dictionary = {}  # action_id -> Callable
+var condition_cache: Dictionary = {}  # condition_id -> Callable
+
 # Объекты, отслеживаемые системой событий
 var tracked_objects: Dictionary = {}
 
@@ -19,11 +24,80 @@ var global_variables: Dictionary = {}
 # Таймеры
 var active_timers: Dictionary = {}  # timer_name -> {"time_left": float, "loop": bool, "total_time": float}
 
+# Флаги оптимизации
+var caches_built: bool = false
+
+# Профилировщик производительности
+var performance_stats: Dictionary = {
+	"events_processed": 0,
+	"actions_executed": 0,
+	"cache_hits": 0,
+	"average_frame_time": 0.0,
+	"last_frame_time": 0.0
+}
+
+# Ленивая загрузка ресурсов
+var resource_load_queue: Array = []
+var loaded_resources: Dictionary = {}  # path -> Resource
+var loading_progress: Dictionary = {}  # path -> status
+
+func _build_caches():
+	"""Строит кэши для оптимизации производительности"""
+	if caches_built:
+		return
+
+	event_cache.clear()
+	action_cache.clear()
+	condition_cache.clear()
+
+	# Строим кэш событий
+	for body_id in body_items:
+		var body = body_items[body_id]
+		var events: Dictionary = body.get("events", {})
+
+		for event_id in events:
+			var event_data = events[event_id]
+			var event_resource: WEvent = ResourceLoader.load(event_data["resource_path"])
+
+			if not event_cache.has(event_resource.id):
+				event_cache[event_resource.id] = []
+			event_cache[event_resource.id].append({
+				"body_id": body_id,
+				"event_data": event_data,
+				"event_resource": event_resource,
+				"actions": body.get("actions", {})
+			})
+
+	# Строим кэш действий
+	action_cache = {
+		"create_object": "_action_create_object",
+		"destroy_object": "_action_destroy_object",
+		"set_position": "_action_set_position",
+		"set_visible": "_action_set_visible",
+		"move_at_angle": "_action_move_at_angle",
+		"set_velocity": "_action_set_velocity",
+		"set_angle": "_action_set_angle",
+		"set_scale": "_action_set_scale",
+		"play_sound": "_action_play_sound",
+		"stop_sound": "_action_stop_sound",
+		"set_variable": "_action_set_variable",
+		"start_timer": "_action_start_timer"
+	}
+
+	# Строим кэш условий
+	condition_cache = {
+		"compare_values": "_condition_compare_values"
+	}
+
+	caches_built = true
+	print("EventSheet: Caches built - ", event_cache.size(), " event types cached")
+
 func _ready() -> void:
 	if !Engine.is_editor_hint():
 		var root = get_tree().root
 		current_scene = root.get_child(root.get_child_count() - 1)
 		_parse_event_sheet()
+		_build_caches()
 		_setup_event_system()
 		_setup_collision_detection()
 		_process_start_events()
@@ -31,9 +105,15 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	if Engine.is_editor_hint():
 		return
-	
+
+	# Обрабатываем асинхронную загрузку ресурсов
+	_process_async_loading()
+
+	# Обновляем движение объектов
+	_update_object_movement(delta)
+
 	# Здесь будут обрабатываться события каждого кадра
-	_process_frame_events(delta)
+	_process_frame_events_optimized(delta)
 
 func _input(event: InputEvent) -> void:
 	if Engine.is_editor_hint():
@@ -153,36 +233,80 @@ func _process_frame_events(delta: float):
 	# Обработка таймеров
 	_update_timers(delta)
 
+func _process_frame_events_optimized(delta: float):
+	"""Оптимизированная обработка событий каждого кадра"""
+	# Группировка таймеров по времени срабатывания для пакетной обработки
+	var timers_by_time = {}  # time_left -> [timer_names]
+
+	for timer_name in active_timers:
+		var timer_data = active_timers[timer_name]
+		var time_key = "%.3f" % timer_data["time_left"]  # Группируем по времени с точностью до 0.001
+
+		if not timers_by_time.has(time_key):
+			timers_by_time[time_key] = []
+		timers_by_time[time_key].append(timer_name)
+
+	# Обновляем все таймеры за один проход
+	var timers_to_trigger = []
+	for time_key in timers_by_time:
+		var timer_names = timers_by_time[time_key]
+		var time_left = float(time_key)
+
+		time_left -= delta
+
+		if time_left <= 0:
+			timers_to_trigger.append_array(timer_names)
+
+			# Обновляем таймеры
+			for timer_name in timer_names:
+				if active_timers.has(timer_name):
+					var timer_data = active_timers[timer_name]
+					if timer_data["loop"]:
+						timer_data["time_left"] = timer_data["total_time"]
+					else:
+						active_timers.erase(timer_name)
+		else:
+			# Обновляем время для оставшихся таймеров
+			for timer_name in timer_names:
+				if active_timers.has(timer_name):
+					active_timers[timer_name]["time_left"] = time_left
+
+	# Запускаем события таймеров пакетно
+	for timer_name in timers_to_trigger:
+		_trigger_event("on_timer", {"timer_name": timer_name})
+
 func _process_input_events(event: InputEvent):
 	"""Обрабатывает события ввода"""
 	# Обработка клавиатуры
 	if event is InputEventKey:
 		if event.pressed and !event.echo:
-			_trigger_event("on_key_pressed", {"key": event.keycode})
+			_trigger_event("on_key_pressed", {"key": event.keycode, "pressed": true})
 		elif !event.pressed:
-			_trigger_event("on_key_released", {"key": event.keycode})
-	
+			_trigger_event("on_key_released", {"key": event.keycode, "pressed": false})
+
 	# Обработка мыши
 	elif event is InputEventMouseButton:
 		if event.pressed:
 			_trigger_event("on_mouse_clicked", {"button": event.button_index, "position": event.position})
 
 func _trigger_event(event_type: String, event_context: Dictionary):
-	"""Запускает событие определенного типа"""
-	for body_id in body_items:
-		var body = body_items[body_id]
-		var events: Dictionary = body.get("events", {})
-		var actions: Dictionary = body.get("actions", {})
+	"""Запускает событие определенного типа с использованием кэшей"""
+	if not event_cache.has(event_type):
+		return
 
-		for event_id in events:
-			var event_data = events[event_id]
-			var event_resource: WEvent = ResourceLoader.load(event_data["resource_path"])
+	# Используем кэш для быстрого доступа к событиям
+	for cached_event in event_cache[event_type]:
+		var event_resource: WEvent = cached_event.event_resource
+		var event_data = cached_event.event_data
 
-			if event_resource.id == event_type and event_resource.enabled:
-				# Проверяем параметры события и условия
-				if _check_event_parameters(event_resource, event_data, event_context) and _check_conditions(event_data, event_context):
-					# Выполняем действия
-					_execute_actions(actions, event_data, event_context)
+		# Проверяем, включено ли событие
+		if not event_resource.enabled:
+			continue
+
+		# Проверяем параметры события и условия
+		if _check_event_parameters(event_resource, event_data, event_context) and _check_conditions(event_data, event_context):
+			# Выполняем действия
+			_execute_actions(cached_event.actions, event_data, event_context)
 
 func _check_event_parameters(event_resource: WEvent, event_data: Dictionary, context: Dictionary) -> bool:
 	"""Проверяет параметры события"""
@@ -509,31 +633,33 @@ func _execute_action(action_id: String, parameters: Dictionary, context: Diction
 # ============================================
 
 func _action_create_object(params: Dictionary, context: Dictionary):
-	"""Создает новый объект"""
+	"""Создает новый объект с типизированными параметрами"""
 	if !current_scene:
 		print("EventSheet: No current scene for object creation")
 		return
-	
-	var object_path = params.get("Object", "")
+
+	# Типизированные параметры
+	var object_path: String = _get_typed_param(params, "Object", TYPE_STRING, "")
 	if object_path == "":
 		print("EventSheet: No object path specified")
 		return
-	
+
+	var obj_name: String = _get_typed_param(params, "Name", TYPE_STRING, "")
+	var x: float = _get_typed_param(params, "X", TYPE_FLOAT, 0.0)
+	var y: float = _get_typed_param(params, "Y", TYPE_FLOAT, 0.0)
+
 	var new_object = load(object_path).instantiate()
-	
+
 	# Устанавливаем имя
-	var obj_name = params.get("Name", "")
 	if obj_name != "":
 		new_object.name = obj_name
-	
+
 	# Устанавливаем позицию
-	var x = float(params.get("X", 0))
-	var y = float(params.get("Y", 0))
 	new_object.position = Vector2(x, y)
-	
+
 	# Добавляем в сцену
 	current_scene.add_child(new_object)
-	
+
 	print("EventSheet: Created object ", obj_name, " at ", new_object.position)
 
 func _action_destroy_object(params: Dictionary, context: Dictionary):
@@ -572,13 +698,18 @@ func _action_move_at_angle(params: Dictionary, context: Dictionary):
 		if obj:
 			var angle = float(params.get("Angle", 0))
 			var speed = float(params.get("Speed", 100))
-			var radians = deg_to_rad(angle)
-			var velocity = Vector2(cos(radians), sin(radians)) * speed
-			if obj.has_method("set_velocity"):
-				obj.set_velocity(velocity)
+
+			# Проверяем, нажата ли клавиша (из контекста события)
+			var pressed = context.get("pressed", true)
+
+			if pressed:
+				# Клавиша нажата - устанавливаем скорость в метаданные объекта
+				var radians = deg_to_rad(angle)
+				var velocity = Vector2(cos(radians), sin(radians)) * speed
+				obj.set_meta("eventsheet_velocity", velocity)
 			else:
-				# Если объект не имеет метода set_velocity, используем position
-				obj.position += velocity * get_process_delta_time()
+				# Клавиша отпущена - убираем скорость
+				obj.set_meta("eventsheet_velocity", Vector2.ZERO)
 
 func _action_set_velocity(params: Dictionary, context: Dictionary):
 	"""Устанавливает скорость объекта"""
@@ -666,22 +797,34 @@ func _action_start_timer(params: Dictionary, context: Dictionary):
 		}
 		print("EventSheet: Started timer ", timer_name, " for ", time, " seconds")
 
+func _update_object_movement(delta: float):
+	"""Обновляет движение объектов каждый кадр"""
+	if !current_scene:
+		return
+
+	# Проходим по всем объектам в сцене
+	for child in current_scene.get_children():
+		if child.has_meta("eventsheet_velocity"):
+			var velocity = child.get_meta("eventsheet_velocity", Vector2.ZERO)
+			if velocity != Vector2.ZERO:
+				child.position += velocity * delta
+
 func _update_timers(delta: float):
 	"""Обновляет состояние таймеров"""
 	var timers_to_trigger = []
-	
+
 	for timer_name in active_timers:
 		var timer_data = active_timers[timer_name]
 		timer_data["time_left"] -= delta
-		
+
 		if timer_data["time_left"] <= 0:
 			timers_to_trigger.append(timer_name)
-			
+
 			if timer_data["loop"]:
 				timer_data["time_left"] = timer_data["total_time"]
 			else:
 				active_timers.erase(timer_name)
-	
+
 	# Запускаем события таймеров
 	for timer_name in timers_to_trigger:
 		_trigger_event("on_timer", {"timer_name": timer_name})
@@ -809,3 +952,181 @@ func set_global_variable(var_name: String, value):
 func get_global_variable(var_name: String, default_value = null):
 	"""Получает глобальную переменную"""
 	return global_variables.get(var_name, default_value)
+
+func _get_typed_param(params: Dictionary, param_name: String, expected_type: int, default_value):
+	"""Получает параметр с правильной типизацией"""
+	var raw_value = params.get(param_name, default_value)
+
+	# Если значение уже правильного типа, возвращаем его
+	if typeof(raw_value) == expected_type:
+		return raw_value
+
+	# Преобразуем в зависимости от ожидаемого типа
+	match expected_type:
+		TYPE_STRING:
+			return str(raw_value)
+		TYPE_INT:
+			if raw_value is String:
+				return raw_value.to_int() if raw_value.is_valid_int() else int(default_value)
+			return int(raw_value)
+		TYPE_FLOAT:
+			if raw_value is String:
+				return raw_value.to_float() if raw_value.is_valid_float() else float(default_value)
+			return float(raw_value)
+		TYPE_BOOL:
+			if raw_value is String:
+				return raw_value.to_lower() == "true"
+			return bool(raw_value)
+		_:
+			return raw_value
+
+func validate_event_sheet() -> Array:
+	"""Валидирует event sheet и возвращает массив ошибок"""
+	var errors = []
+
+	for body_id in body_items:
+		var body = body_items[body_id]
+
+		# Проверяем события
+		var events: Dictionary = body.get("events", {})
+		for event_id in events:
+			var event_data = events[event_id]
+			var event_resource_path = event_data.get("resource_path", "")
+
+			# Проверяем существование ресурса события
+			if not ResourceLoader.exists(event_resource_path):
+				errors.append("Event resource not found: %s in body %s" % [event_resource_path, body_id])
+			else:
+				var event_resource: WEvent = ResourceLoader.load(event_resource_path)
+				if not event_resource:
+					errors.append("Failed to load event resource: %s" % event_resource_path)
+
+		# Проверяем действия
+		var actions: Dictionary = body.get("actions", {})
+		for action_id in actions:
+			var action_data = actions[action_id]
+			var action_resource_path = action_data.get("resource_path", "")
+
+			# Проверяем существование ресурса действия
+			if not ResourceLoader.exists(action_resource_path):
+				errors.append("Action resource not found: %s in body %s" % [action_resource_path, body_id])
+			else:
+				var action_resource: WAction = ResourceLoader.load(action_resource_path)
+				if not action_resource:
+					errors.append("Failed to load action resource: %s" % action_resource_path)
+
+		# Проверяем комментарии
+		var comments: Dictionary = body.get("comments", {})
+		for comment_id in comments:
+			var comment_data = comments[comment_id]
+			if not comment_data.has("text") or comment_data["text"].strip_edges() == "":
+				errors.append("Empty comment found in body %s" % body_id)
+
+	return errors
+
+func rebuild_caches():
+	"""Перестраивает кэши (вызывается при изменении event sheet)"""
+	caches_built = false
+	_build_caches()
+
+func preload_resources_async():
+	"""Асинхронная предзагрузка ресурсов"""
+	var resource_paths = _collect_all_resource_paths()
+
+	for path in resource_paths:
+		if not loaded_resources.has(path) and not loading_progress.has(path):
+			loading_progress[path] = "pending"
+			resource_load_queue.append(path)
+
+	# Начинаем загрузку первых ресурсов
+	_start_async_loading()
+
+func _collect_all_resource_paths() -> Array:
+	"""Собирает все пути к ресурсам из event sheet"""
+	var paths = []
+
+	for body_id in body_items:
+		var body = body_items[body_id]
+
+		# Собираем пути из событий
+		var events: Dictionary = body.get("events", {})
+		for event_id in events:
+			var event_data = events[event_id]
+			var event_path = event_data.get("resource_path", "")
+			if event_path != "" and not paths.has(event_path):
+				paths.append(event_path)
+
+		# Собираем пути из действий
+		var actions: Dictionary = body.get("actions", {})
+		for action_id in actions:
+			var action_data = actions[action_id]
+			var action_path = action_data.get("resource_path", "")
+			if action_path != "" and not paths.has(action_path):
+				paths.append(action_path)
+
+			# Собираем пути из параметров действий (например, пути к сценам, звукам)
+			var params = action_data.get("new_parametrs", {})
+			for param_key in params:
+				var param_value = params[param_key]
+				if param_value is String and param_value.begins_with("res://"):
+					if not paths.has(param_value):
+						paths.append(param_value)
+
+	return paths
+
+func _start_async_loading():
+	"""Начинает асинхронную загрузку ресурсов"""
+	var max_concurrent_loads = 3  # Максимум одновременных загрузок
+
+	for i in range(min(max_concurrent_loads, resource_load_queue.size())):
+		var path = resource_load_queue.pop_front()
+		if path and not loaded_resources.has(path):
+			loading_progress[path] = "loading"
+			ResourceLoader.load_threaded_request(path, "", true)
+
+func _process_async_loading():
+	"""Обрабатывает завершение асинхронной загрузки в _process"""
+	if resource_load_queue.is_empty() and loading_progress.is_empty():
+		return
+
+	var completed_paths = []
+
+	for path in loading_progress:
+		var status = ResourceLoader.load_threaded_get_status(path)
+		match status:
+			ResourceLoader.THREAD_LOAD_IN_PROGRESS:
+				continue
+			ResourceLoader.THREAD_LOAD_LOADED:
+				var resource = ResourceLoader.load_threaded_get(path)
+				if resource:
+					loaded_resources[path] = resource
+					completed_paths.append(path)
+					print("EventSheet: Loaded resource: ", path)
+				else:
+					print("EventSheet: Failed to load resource: ", path)
+					completed_paths.append(path)
+			ResourceLoader.THREAD_LOAD_FAILED:
+				print("EventSheet: Failed to load resource: ", path)
+				completed_paths.append(path)
+
+	# Удаляем завершенные загрузки
+	for path in completed_paths:
+		loading_progress.erase(path)
+
+	# Начинаем загрузку следующих ресурсов
+	if not resource_load_queue.is_empty():
+		_start_async_loading()
+
+func get_cached_resource(path: String):
+	"""Получает ресурс из кэша или загружает синхронно"""
+	if loaded_resources.has(path):
+		return loaded_resources[path]
+
+	# Если ресурс не загружен, загружаем синхронно
+	if ResourceLoader.exists(path):
+		var resource = ResourceLoader.load(path)
+		if resource:
+			loaded_resources[path] = resource
+		return resource
+
+	return null

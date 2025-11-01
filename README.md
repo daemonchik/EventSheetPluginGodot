@@ -1,4 +1,4 @@
-# Плагин EventSheet - Godot 4
+# Плагин EventSheet - Godot 4 (Продолжение)
 
 ![Изображение демо](https://github.com/user-attachments/assets/3372e752-4e49-4e87-90f2-61b9b195eaff)
 
